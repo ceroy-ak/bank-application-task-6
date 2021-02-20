@@ -4,6 +4,7 @@ import { useBoolean } from '@uifabric/react-hooks'
 import IBank from '../interfaces/bank.interface'
 import Ilogin from '../interfaces/bank.login.interface'
 import { useHistory } from 'react-router-dom'
+import AccountStatusEnum from '../interfaces/acount.status.enum'
 
 interface IHomePage {
     bankDB: IBank,
@@ -33,12 +34,17 @@ function HomePage({ bankDB, loginSession, setLoginSession }: IHomePage) {
             dismissClientLogin()
             bankDB.client.forEach((client) => {
                 if (client.username === userName && client.password === password) {
-                    let newLoginSession = { ...loginSession }
-                    newLoginSession.currentId = client.id
-                    newLoginSession.isLoggedIn = true
-                    newLoginSession.isStaff = false
-                    setLoginSession(newLoginSession)
-                    history.push(`/client/${newLoginSession.currentId}`)
+
+                    if (client.status === AccountStatusEnum.Close) {
+                        window.alert('Your Account is Closed. Please contact the bank')
+                    } else {
+                        let newLoginSession = { ...loginSession }
+                        newLoginSession.currentId = client.id
+                        newLoginSession.isLoggedIn = true
+                        newLoginSession.isStaff = false
+                        setLoginSession(newLoginSession)
+                        history.push(`/client/${newLoginSession.currentId}`)
+                    }
                 }
             })
         }

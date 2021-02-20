@@ -30,7 +30,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
     })
 
     if (loginSession.currentId === undefined) {
-        history.push('/')
+        logOut()
     }
 
     let clientAccount = bankDB.client.filter((client) => {
@@ -40,8 +40,12 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
     })[0]
 
     let transactions = clientAccount.transactions
+    let balance = 0
 
-    const balance = Object.values(transactions.map((val) => (val.status === TransactionStatus.Success) ? val.amount : 0)).reduce((a, b) => a + b)
+    if (transactions.length > 0) {
+
+        balance = Object.values(transactions.map((val) => (val.status === TransactionStatus.Success) ? val.amount : 0)).reduce((a, b) => a + b)
+    }
 
     function logOut() {
         let newLoginSession = loginSession!
@@ -160,6 +164,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
             <p>You current balance is <b>&#8377; {balance}</b></p>
 
             <br />
+            {(transactions.length === 0) ? <p>No Transactions to Show</p> : <></>}
             {
                 transactions.map((value) => {
                     return <ClientTransaction amount={value.amount} fromAccountId={value.fromAccountId} id={value.id} status={value.status} toAccountId={value.toAccountId} key={value.id} bankDB={bankDB} />

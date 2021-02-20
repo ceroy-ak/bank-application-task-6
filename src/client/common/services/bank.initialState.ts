@@ -17,7 +17,7 @@ let bank: IBank = {
     staff: [{
         name: "R. Ashwin",
         username: "staff1",
-        password: "pa55word"
+        password: "123"
     }],
     client: [
         {
@@ -27,35 +27,35 @@ let bank: IBank = {
             username: "abhishek",
             transactions: [
                 {
-                    id: createTransactionId(bankId, clientId1),
+                    id: "TXN-Tec-20-2-2021-1613825167894-Abh-20-2-2021-1613825167894-20-2-2021-1613825167894",
                     amount: -500,
                     fromAccountId: clientId1,
                     toAccountId: clientId1,
                     status: TransactionStatusEnum.Success
                 },
                 {
-                    id: createTransactionId(bankId, clientId1),
+                    id: "TXN-Tec-20-2-2021-1613825167894-Abh-20-2-2021-1613825167894-20-2-2021-1613825123424",
                     amount: 2000,
                     fromAccountId: clientId1,
                     toAccountId: clientId1,
                     status: TransactionStatusEnum.Success
                 },
                 {
-                    id: createTransactionId(bankId, clientId1),
+                    id: "TXN-Tec-20-2-2021-1613825167894-Abh-20-2-2021-1613825167894-20-2-2021-1613821111111",
                     amount: -5000,
                     fromAccountId: clientId1,
                     toAccountId: clientId3,
                     status: TransactionStatusEnum.Revoked
                 },
                 {
-                    id: createTransactionId(bankId, clientId1),
+                    id: "TXN-Tec-20-2-2021-1613825167894-Abh-20-2-2021-1613825167894-20-2-2021-1613825345743",
                     amount: -500,
                     fromAccountId: clientId1,
                     toAccountId: clientId2,
                     status: TransactionStatusEnum.Success
                 },
                 {
-                    id: createTransactionId(bankId, clientId1),
+                    id: `TXN-Tec-20-2-2021-1613825167894-${clientId2}-20-2-2021-1613825888894`,
                     amount: 50000,
                     fromAccountId: clientId2,
                     toAccountId: clientId1,
@@ -71,21 +71,21 @@ let bank: IBank = {
             username: "sachinmaster",
             transactions: [
                 {
-                    id: createTransactionId(bankId, clientId2),
+                    id: `TXN-Tec-20-2-2021-1613825167894-${clientId2}-20-2-2021-1613825167894`,
                     amount: 100000,
                     fromAccountId: clientId2,
                     toAccountId: clientId2,
                     status: TransactionStatusEnum.Success
                 },
                 {
-                    id: createTransactionId(bankId, clientId2),
+                    id: `TXN-Tec-20-2-2021-1613825167894-${clientId2}-20-2-2021-1613825888894`,
                     amount: -50000,
                     fromAccountId: clientId2,
                     toAccountId: clientId1,
                     status: TransactionStatusEnum.Success
                 },
                 {
-                    id: createTransactionId(bankId, clientId2),
+                    id: "TXN-Tec-20-2-2021-1613825167894-Abh-20-2-2021-1613825167894-20-2-2021-1613825345743",
                     amount: 500,
                     fromAccountId: clientId1,
                     toAccountId: clientId2,
@@ -101,7 +101,7 @@ let bank: IBank = {
             username: "msHelicopter7",
             transactions: [
                 {
-                    id: createTransactionId(bankId, clientId3),
+                    id: "TXN-Tec-20-2-2021-1613825167894-Abh-20-2-2021-1613825167894-20-2-2021-1613821111111",
                     amount: 5000,
                     fromAccountId: clientId1,
                     toAccountId: clientId3,
