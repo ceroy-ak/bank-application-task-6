@@ -17,9 +17,9 @@ function App() {
   return (
     <BrowserRouter>
       <Switch>
-        <Route path='/client/:id' render={() => <ClientDashboard bankDB={bankDB} loginSession={loginSession} setBankDB={setBankDB} setLoginSession={setLoginSession} />} />
-        <Route path='/staff/:id' render={() => <StaffDashboard bankDB={bankDB} loginSession={loginSession} setBankDB={setBankDB} setLoginSession={setLoginSession} />} />
         <Route path='/' exact render={() => <HomePage bankDB={bankDB} loginSession={loginSession} setLoginSession={setLoginSession} />} />
+        <Route path='/client/:id' exact render={() => <ClientDashboard bankDB={bankDB} loginSession={loginSession} setBankDB={setBankDB} setLoginSession={setLoginSession} />} />
+        <Route path='/staff/:id' exact render={() => <StaffDashboard bankDB={bankDB} loginSession={loginSession} setBankDB={setBankDB} setLoginSession={setLoginSession} />} />
         <Route component={PageNotFound} />
       </Switch>
     </BrowserRouter>
