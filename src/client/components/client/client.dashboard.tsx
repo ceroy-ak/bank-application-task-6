@@ -82,7 +82,8 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
             fromAccountId: loginSession.currentId!,
             toAccountId: loginSession.currentId!,
             status: TransactionStatusEnum.Success,
-            id: createTransactionId(bankDB.id, loginSession.currentId!)
+            id: createTransactionId(bankDB.id, loginSession.currentId!),
+            datetime: Date.now().toString()
         }
         transactions.unshift(tempTransaction)
 
@@ -108,7 +109,8 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
             fromAccountId: loginSession.currentId!,
             toAccountId: loginSession.currentId!,
             status: TransactionStatusEnum.Success,
-            id: createTransactionId(bankDB.id, loginSession.currentId!)
+            id: createTransactionId(bankDB.id, loginSession.currentId!),
+            datetime: Date.now().toString()
         }
         transactions.unshift(tempTransaction)
 
@@ -133,7 +135,8 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
                 fromAccountId: loginSession.currentId!,
                 toAccountId: transactAmount.toAccountId,
                 id: createTransactionId(bankDB.id, loginSession.currentId!),
-                status: TransactionStatusEnum.Success
+                status: TransactionStatusEnum.Success,
+                datetime: Date.now().toString()
             }
 
             bankDB.client.forEach((client) => {

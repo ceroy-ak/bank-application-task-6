@@ -6,6 +6,7 @@ interface ITransaction {
     toAccountId: string
     fromAccountId: string
     status: TransactionStatusEnum
+    datetime: string
 }
 
 export default ITransaction

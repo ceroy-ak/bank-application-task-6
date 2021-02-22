@@ -1,0 +1,62 @@
+.login-panel {
+  &-img {
+    margin-top: 50px;
+    height: 150px;
+    width: 150px;
+    border-radius: 100%;
+    margin-left: 24%;
+  }
+
+  &-username {
+    margin-top: 40px;
+  }
+
+  &-password {
+    margin: 25px 0px 60px 0px;
+  }
+
+  &-btn {
+    margin: 0px 10px;
+    padding: 20px 40px;
+  }
+
+  &-cancel-btn {
+    padding: 20px 40px;
+  }
+}
+
+.home {
+  &-title {
+    font-weight: 500;
+    font-size: 30px;
+    border-bottom: 1px solid black;
+    background-color: #0078d4;
+    margin: 0px 0px 100px 0px;
+    padding: 10px 0px;
+    color: white;
+    text-align: center;
+  }
+
+  &-bank-name {
+    text-align: center;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: #323130;
+    margin-top: 70px;
+  }
+
+  &-btn {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+  }
+  &-client-btn {
+    padding: 20px 80px;
+    margin-right: 40px;
+  }
+
+  &-staff-btn {
+    padding: 20px 80px;
+    margin-left: 40px;
+  }
+}
