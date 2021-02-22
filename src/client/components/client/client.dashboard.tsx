@@ -155,24 +155,43 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
     }
 
     return (
-        <div>
-            <h1>Client Dashboard</h1>
-            <PrimaryButton text="Logout" onClick={logOut} />
-            <br />
-            <PrimaryButton text="Deposit" onClick={openDepositModal} />
-            <PrimaryButton text="Withdraw" onClick={openWithdrawModal} />
-            <PrimaryButton text="Transact" onClick={openTransactModal} />
+        <div className="ms-Grid" dir="ltr">
+            <div className="ms-Grid-row client-dashboard__title-row">
+                <div className="ms-Grid-col ms-md6">
+                    <h1 className="client-dashboard--title">Client Dashboard | {bankDB.name}</h1>
+                </div>
+                <div className="ms-Grid-col ms-mdPush5">
+                    <PrimaryButton className="client-dashboard--logout" text="Logout" onClick={logOut} />
+                </div>
+            </div>
 
-            <h1>Hi {clientAccount.name}</h1>
-            <p>You current balance is <b>&#8377; {balance}</b></p>
+            <div className="ms-Grid-row">
+                <h1 className="client-dashboard--client-name">Welcome, {clientAccount.name}</h1>
+            </div>
+            <div className="ms-Grid-row client-dashboard--balance-title">
+                <p>Current Balance</p>
+            </div>
+            <div className="ms-Grid-row client-dashboard--balance-amount">
+                <p>&#8377; {balance}</p>
+            </div>
 
-            <br />
-            {(transactions.length === 0) ? <p>No Transactions to Show</p> : <></>}
-            {
-                transactions.map((value) => {
-                    return <ClientTransaction amount={value.amount} fromAccountId={value.fromAccountId} id={value.id} status={value.status} toAccountId={value.toAccountId} key={value.id} bankDB={bankDB} />
-                })
-            }
+            <div className="ms-Grid-row client-dashboard--btn">
+                <PrimaryButton text="Deposit" onClick={openDepositModal} />
+                <PrimaryButton text="Withdraw" onClick={openWithdrawModal} />
+                <PrimaryButton text="Transact" onClick={openTransactModal} />
+            </div>
+
+
+
+            <div className="ms-Grid-row">
+
+                {(transactions.length === 0) ? <p>No Transactions to Show</p> : <></>}
+                {
+                    transactions.map((value) => {
+                        return <ClientTransaction amount={value.amount} fromAccountId={value.fromAccountId} id={value.id} status={value.status} toAccountId={value.toAccountId} key={value.id} bankDB={bankDB} />
+                    })
+                }
+            </div>
 
             <Modal isOpen={isDepositModal} onDismiss={dismissDepositModal}>
                 <TextField label="Deposit Amount" onChange={(e, value) => setDepositAmount(value!)} />

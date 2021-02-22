@@ -53,8 +53,18 @@ function App() {
     <BrowserRouter>
       <Switch>
         <Route path='/' exact render={() => <HomePage bankDB={bankDB!} loginSession={loginSession} setLoginSession={setLoginSession} chooseBank={chooseBank} />} />
-        <Route path='/client/:id' exact render={() => <ClientDashboard bankDB={bankDB!} loginSession={loginSession} setBankDB={setBankDB} setLoginSession={setLoginSession} />} />
-        <Route path='/staff/:id' exact render={() => <StaffDashboard bankDB={bankDB!} loginSession={loginSession} setBankDB={setBankDB} setLoginSession={setLoginSession} />} />
+        <Route path='/client/:id' exact render={() => {
+          if (loginSession.currentId === undefined || loginSession.isLoggedIn === false || loginSession.isStaff === true)
+            return (
+
+              <HomePage bankDB={bankDB!} loginSession={loginSession} setLoginSession={setLoginSession} chooseBank={chooseBank} />)
+          else return <ClientDashboard bankDB={bankDB!} loginSession={loginSession} setBankDB={setBankDB} setLoginSession={setLoginSession} />
+        }} />
+        <Route path='/staff/:id' exact render={() => {
+          if (loginSession.currentId === undefined || loginSession.isLoggedIn === false || loginSession.isStaff !== true)
+            return <HomePage bankDB={bankDB!} loginSession={loginSession} setLoginSession={setLoginSession} chooseBank={chooseBank} />
+          else return <StaffDashboard bankDB={bankDB!} loginSession={loginSession} setBankDB={setBankDB} setLoginSession={setLoginSession} />
+        }} />
         <Route component={PageNotFound} />
       </Switch>
     </BrowserRouter>
