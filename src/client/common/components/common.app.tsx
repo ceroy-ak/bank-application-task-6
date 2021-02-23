@@ -21,7 +21,16 @@ function App() {
     id: "",
     name: "Select a bank",
     staff: [],
-    img: ""
+    img: "",
+    currency: [],
+    imps: {
+      same: 0,
+      other: 0
+    },
+    rtgs: {
+      other: 0,
+      same: 0
+    }
   }
   const [bankDB, setBankDB] = useState<IBank>(defaultBank)
   const [loginSession, setLoginSession] = useState(initialLogin)

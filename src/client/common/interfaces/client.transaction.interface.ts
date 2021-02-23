@@ -4,6 +4,7 @@ import BankNameEnum from './bank.name.enum'
 interface ITransaction {
     id: string
     amount: number
+    charges: number
     toAccountId: string
     fromAccountId: string
     status: TransactionStatusEnum

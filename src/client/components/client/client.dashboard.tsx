@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import IDashboard from '../../common/interfaces/bank.dashboard.interface'
 import {
-    PrimaryButton, Modal, TextField, DefaultButton, DetailsList, IColumn, CheckboxVisibility, DetailsListLayoutMode, ConstrainMode,
-    IViewport, TooltipHost, IStyleFunctionOrObject, IDetailsListStyleProps, IDetailsListStyles, IDetailsColumnStyleProps, IDetailsColumnStyles
+    PrimaryButton, Modal, TextField, DefaultButton, DetailsList, IColumn,
+    CheckboxVisibility, DetailsListLayoutMode, ConstrainMode,
+    IDropdownOption,
+    TooltipHost,
+    Dropdown
 } from '@fluentui/react'
 import { useHistory } from 'react-router-dom'
 import TransactionStatus from '../../common/interfaces/transaction.status.enum'
@@ -11,17 +14,29 @@ import ITransaction from '../../common/interfaces/client.transaction.interface'
 import TransactionStatusEnum from '../../common/interfaces/transaction.status.enum'
 import { createTransactionId } from '../../common/services/bank.id.creation'
 import BankNameEnum from '../../common/interfaces/bank.name.enum'
+import { v4 as uuidV4 } from 'uuid'
 
 function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: IDashboard) {
 
+    //Booleans to control the opening and closing of the modals and setting of the values
     const history = useHistory()
-    const [isDepositModal, { setTrue: openDepositModal, setFalse: dismissDepositModal }] = useBoolean(false)
     const [isWithdrawModal, { setTrue: openWithdrawModal, setFalse: dismissWithdrawModal }] = useBoolean(false)
     const [isTransactModal, { setTrue: openTransactModal, setFalse: dismissTransactModal }] = useBoolean(false)
-
-    const [depositAmount, setDepositAmount] = useState('')
     const [withdrawAmount, setWithdrawAmount] = useState('')
 
+    //Common states for Modal
+    const [exchangeCurrency, setExchangeCurrency] = useState('INR')
+    const [transferCharge, setTransferCharge] = useState(0)
+
+
+    //Deposit Modal
+    const [isDepositModal, { setTrue: openDepositModal, setFalse: dismissDepositModal }] = useBoolean(false)
+    const [depositAmount, setDepositAmount] = useState('0')
+    const [isAmountValid, { setTrue: amountInvalid, setFalse: amountValid }] = useBoolean(true)
+
+
+
+    //Interface for the Transact Action
     interface ITransactAmount {
         toAccountId: string,
         amount: string,
@@ -81,43 +96,64 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
 
     function depositAmountProcess() {
         dismissDepositModal()
-        const amount: number = Number.parseFloat(depositAmount)
-        const tempTransaction: ITransaction = {
-            amount: amount,
-            fromAccountId: loginSession.currentId!,
-            toAccountId: loginSession.currentId!,
-            status: TransactionStatusEnum.Success,
-            id: createTransactionId(bankDB.id, loginSession.currentId!),
-            datetime: Date.now().toString(),
-            toBankName: bankDB.enum
-        }
-        transactions.unshift(tempTransaction)
+        amountInvalid()
+        try {
+            let amount: number = Number.parseFloat(depositAmount)
+            const date = new Date()
+            let exchangeRate: number = 1;
+            bankDB.currency.forEach((value) => {
+                if (value.currency === exchangeCurrency && value.currency !== 'INR') {
+                    exchangeRate = value.exchangeRate
+                }
+            })
+            amount = Number.parseFloat((amount * exchangeRate).toFixed(2))
 
-        bankDB.client.forEach((client) => {
-            if (client.id === loginSession.currentId!) {
-                client.transactions = transactions
+
+            const tempTransaction: ITransaction = {
+                amount: amount,
+                fromAccountId: loginSession.currentId!,
+                toAccountId: loginSession.currentId!,
+                status: TransactionStatusEnum.Success,
+                id: createTransactionId(bankDB.id, loginSession.currentId!),
+                datetime: date.toString(),
+                toBankName: bankDB.enum,
+                charges: 0
             }
-        })
+            transactions.unshift(tempTransaction)
 
-        setBankDB(bankDB)
+            bankDB.client.forEach((client) => {
+                if (client.id === loginSession.currentId!) {
+                    client.transactions = transactions
+                }
+            })
+            setExchangeCurrency('INR')
+            setBankDB(bankDB)
+        }
+        catch (e) {
+            alert('Something went wrong' + e)
+            return
+        }
     }
 
     function withdrawAmountProcess() {
         dismissWithdrawModal()
+        amountInvalid()
         const amount: number = Number.parseFloat(withdrawAmount)
         if (amount > balance) {
             window.alert('Insufficient Balance')
             return
         }
 
+        const date = new Date()
         const tempTransaction: ITransaction = {
             amount: amount * -1,
             fromAccountId: loginSession.currentId!,
             toAccountId: loginSession.currentId!,
             status: TransactionStatusEnum.Success,
             id: createTransactionId(bankDB.id, loginSession.currentId!),
-            datetime: Date.now().toString(),
-            toBankName: bankDB.enum
+            datetime: date.toString(),
+            toBankName: bankDB.enum,
+            charges: 0
         }
         transactions.unshift(tempTransaction)
 
@@ -144,7 +180,8 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
                 id: createTransactionId(bankDB.id, loginSession.currentId!),
                 status: TransactionStatusEnum.Success,
                 datetime: Date.now().toString(),
-                toBankName: transactAmount.toBankName
+                toBankName: transactAmount.toBankName,
+                charges: transferCharge
             }
 
             bankDB.client.forEach((client) => {
@@ -198,20 +235,9 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
             isResizable: true
         },
         {
-            key: "amount",
-            minWidth: 50,
-            maxWidth: 120,
-            name: "Amount",
-            isResizable: true,
-            onRender: (item: ITransaction) => {
-                let amount = Math.abs(item.amount)
-                return <span><b>&#8377; {amount}</b></span>
-            }
-        },
-        {
             key: "receiver",
             minWidth: 80,
-            maxWidth: 400,
+            maxWidth: 310,
             name: "To",
             onRender: (item: ITransaction) => {
                 let receiverText = "unknown"
@@ -230,7 +256,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
         {
             key: "type",
             minWidth: 50,
-            maxWidth: 120,
+            maxWidth: 150,
             isResizable: true,
             name: "Type",
             onRender: (item: ITransaction) => {
@@ -260,15 +286,69 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
             onRender: (item: ITransaction) => {
                 if (item.status === TransactionStatus.Success)
                     return <span style={{ color: "green" }}>Success</span>
-                else return <span style={{ color: "red" }}>Failed</span>
+                else if (item.status === TransactionStatus.Revoked) return <span style={{ color: "red" }}>Revoked</span>
+                else return <span style={{ color: "yellow" }}>Failed</span>
             },
             isResizable: true
         },
-
+        {
+            key: "charges",
+            minWidth: 50,
+            maxWidth: 80,
+            name: "Charges",
+            isResizable: true,
+            onRender: (item: ITransaction) => {
+                let charge = item.charges.toFixed(2)
+                return <span style={{ color: `${(item.status !== TransactionStatusEnum.Success) ? '#c8c6c4' : '#252423'}` }}><b>&#8377; {charge}</b></span>
+            }
+        },
+        {
+            key: "debit",
+            minWidth: 50,
+            maxWidth: 80,
+            name: "Debit",
+            isResizable: true,
+            onRender: (item: ITransaction) => {
+                let debit = '-'
+                if (item.amount < 0) {
+                    debit = Math.abs(item.amount).toFixed(2)
+                }
+                return <span style={{ color: `${(item.status !== TransactionStatusEnum.Success) ? '#c8c6c4' : '#252423'}` }}><b>&#8377; {debit}</b></span>
+            }
+        },
+        {
+            key: "credit",
+            minWidth: 50,
+            maxWidth: 80,
+            name: "Credit",
+            isResizable: true,
+            onRender: (item: ITransaction) => {
+                let credit = '-'
+                if (item.amount > 0) {
+                    credit = item.amount.toFixed(2)
+                }
+                return <span style={{ color: `${(item.status !== TransactionStatusEnum.Success) ? '#c8c6c4' : '#252423'}` }}><b>&#8377; {credit}</b></span>
+            }
+        }
     ]
 
-    //Booleans for all the Modals in Form Validation
-    const [isDepositValid, { setTrue: invalidDeposit, setFalse: validDeposit }] = useBoolean(true)
+
+    const currencyOptions: IDropdownOption[] = []
+    bankDB.currency.forEach((currency) => {
+        currencyOptions.push({
+            key: currency.currency,
+            text: currency.currency,
+        })
+    })
+
+    const transferMode: IDropdownOption[] = [{
+        key: 'rtgs',
+        text: 'RTGS'
+    }, {
+        key: 'imps',
+        text: 'IMPS'
+    }
+    ]
 
 
 
@@ -290,7 +370,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
                 <p>Current Balance</p>
             </div>
             <div className="ms-Grid-row client-dashboard--balance-amount">
-                <p>&#8377; {balance}</p>
+                <p>&#8377; {balance.toFixed(2)}</p>
             </div>
 
             <div className="ms-Grid-row client-dashboard--btn">
@@ -315,22 +395,60 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
 
             </div>
 
-            <Modal isOpen={isDepositModal} onDismiss={dismissDepositModal}>
-                <TextField label="Enter Deposit Amount" type="number" onChange={(e, value) => {
-                    if (value?.length === 0) invalidDeposit()
-                    else validDeposit()
+
+            {/*Deposit Modal */}
+            <Modal className="client-dashboard--modal" isOpen={isDepositModal}>
+                <Dropdown
+                    key={uuidV4()}
+                    options={currencyOptions}
+                    label="Currency"
+                    defaultSelectedKey={exchangeCurrency}
+                    required
+                    className="client-dashboard--modal-dropdown"
+                    onChange={(e, option) => setExchangeCurrency(option?.text ?? 'INR')}
+                />
+                <TextField required className="client-dashboard--modal-input" label="Deposit Amount" type="number" placeholder="Enter valid amount" onChange={(e, value) => {
+                    if (value?.length === 0) {
+                        amountInvalid()
+                    } else {
+                        amountValid()
+                        setDepositAmount(value!)
+                    }
                 }} />
-                <PrimaryButton text="Deposit" onClick={depositAmountProcess} disabled={isDepositValid} />
-                <DefaultButton text="Cancel" onClick={dismissDepositModal} />
+                <PrimaryButton className="client-dashboard--modal-btn" text="Deposit" onClick={depositAmountProcess} disabled={isAmountValid} />
+                <DefaultButton className="client-dashboard--modal-cancel" text="Cancel" onClick={() => {
+                    amountInvalid()
+                    dismissDepositModal()
+                }} />
             </Modal>
 
-            <Modal isOpen={isWithdrawModal} onDismiss={dismissWithdrawModal}>
-                <TextField label="Withdraw Amount" onChange={(e, value) => setWithdrawAmount(value!)} />
-                <PrimaryButton text="Withdraw" onClick={withdrawAmountProcess} />
-                <DefaultButton text="Cancel" onClick={dismissWithdrawModal} />
+
+
+            {/*Withdraw Modal */}
+            <Modal className="client-dashboard--modal" isOpen={isWithdrawModal}>
+                <TextField className="client-dashboard--modal-input" type="number" prefix="&#8377;" label="Withdraw Amount" placeholder="Enter valid amount" onChange={(e, value) => {
+                    if (value?.length === 0) {
+                        amountInvalid()
+                    } else {
+                        amountValid()
+                        setWithdrawAmount(value!)
+                    }
+                }} />
+                <PrimaryButton className="client-dashboard--modal-btn" text="Withdraw" onClick={withdrawAmountProcess} disabled={isAmountValid} />
+                <DefaultButton className="client-dashboard--modal-cancel" text="Cancel" onClick={dismissWithdrawModal} />
             </Modal>
 
+
+
+            {/*Transaction Modal */}
             <Modal isOpen={isTransactModal} onDismiss={dismissTransactModal}>
+                <Dropdown
+                    key={uuidV4()}
+                    options={transferMode}
+                    label="Transfer Mode"
+                    required
+                    defaultSelectedKey="rtgs"
+                />
                 <TextField label="Transaction Amount" onChange={(e, value) => transactAmountSet(value!)} />
                 <TextField label="Payee Account Number" onChange={(e, value) => transactPayeeIdSet(value!)} />
                 <PrimaryButton text="Transact" onClick={transactAmountProcess} />

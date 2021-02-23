@@ -55,3 +55,23 @@
     margin: 50px 40px;
   }
 }
+
+.client-dashboard--modal {
+  &-input {
+    padding: 10px 30px 40px 30px;
+  }
+
+  &-btn {
+    margin: 10px 20px;
+    padding: 10px 30px;
+  }
+
+  &-cancel {
+    margin: 10px 20px;
+    padding: 10px 30px;
+  }
+
+  &-dropdown {
+    padding: 40px 30px 0px 30px;
+  }
+}
