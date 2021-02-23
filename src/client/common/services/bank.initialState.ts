@@ -37,7 +37,8 @@ const technovertBank: IBank = {
                     fromAccountId: technovertClientId1,
                     toAccountId: technovertClientId1,
                     status: TransactionStatusEnum.Success,
-                    datetime: "Mon Feb 20 2021 11:52:40 GMT+0530 (India Standard Time)"
+                    datetime: "Mon Feb 20 2021 11:52:40 GMT+0530 (India Standard Time)",
+                    toBankName: BankNameEnum.Technovert
                 },
                 {
                     id: "TXN-Tec-20-2-2021-1613825167894-Abh-20-2-2021-1613825167894-20-2-2021-1613825123424",
@@ -45,7 +46,8 @@ const technovertBank: IBank = {
                     fromAccountId: technovertClientId1,
                     toAccountId: technovertClientId1,
                     status: TransactionStatusEnum.Success,
-                    datetime: "Mon Feb 20 2021 10:52:40 GMT+0530 (India Standard Time)"
+                    datetime: "Mon Feb 20 2021 10:52:40 GMT+0530 (India Standard Time)",
+                    toBankName: BankNameEnum.Technovert
                 },
                 {
                     id: "TXN-Tec-20-2-2021-1613825167894-Abh-20-2-2021-1613825167894-20-2-2021-1613821111111",
@@ -53,7 +55,8 @@ const technovertBank: IBank = {
                     fromAccountId: technovertClientId1,
                     toAccountId: technovertClientId3,
                     status: TransactionStatusEnum.Revoked,
-                    datetime: "Mon Feb 19 2021 19:52:40 GMT+0530 (India Standard Time)"
+                    datetime: "Mon Feb 19 2021 19:52:40 GMT+0530 (India Standard Time)",
+                    toBankName: BankNameEnum.Technovert
                 },
                 {
                     id: "TXN-Tec-20-2-2021-1613825167894-Abh-20-2-2021-1613825167894-20-2-2021-1613825345743",
@@ -61,7 +64,8 @@ const technovertBank: IBank = {
                     fromAccountId: technovertClientId1,
                     toAccountId: technovertClientId2,
                     status: TransactionStatusEnum.Success,
-                    datetime: "Mon Feb 18 2021 11:52:40 GMT+0530 (India Standard Time)"
+                    datetime: "Mon Feb 18 2021 11:52:40 GMT+0530 (India Standard Time)",
+                    toBankName: BankNameEnum.Technovert
                 },
                 {
                     id: `TXN-Tec-20-2-2021-1613825167894-${technovertClientId2}-20-2-2021-1613825888894`,
@@ -69,7 +73,8 @@ const technovertBank: IBank = {
                     fromAccountId: technovertClientId2,
                     toAccountId: technovertClientId1,
                     status: TransactionStatusEnum.Success,
-                    datetime: "Mon Feb 17 2021 11:52:40 GMT+0530 (India Standard Time)"
+                    datetime: "Mon Feb 17 2021 11:52:40 GMT+0530 (India Standard Time)",
+                    toBankName: BankNameEnum.Technovert
                 }
             ],
             status: AccountStatusEnum.Open
@@ -86,7 +91,8 @@ const technovertBank: IBank = {
                     fromAccountId: technovertClientId2,
                     toAccountId: technovertClientId2,
                     status: TransactionStatusEnum.Success,
-                    datetime: "Mon Feb 17 2021 12:52:40 GMT+0530 (India Standard Time)"
+                    datetime: "Mon Feb 17 2021 12:52:40 GMT+0530 (India Standard Time)",
+                    toBankName: BankNameEnum.Technovert
                 },
                 {
                     id: "TXN-Tec-20-2-2021-1613825167894-Abh-20-2-2021-1613825167894-20-2-2021-1613825345743",
@@ -94,7 +100,8 @@ const technovertBank: IBank = {
                     fromAccountId: technovertClientId1,
                     toAccountId: technovertClientId2,
                     status: TransactionStatusEnum.Success,
-                    datetime: "Mon Feb 18 2021 11:52:40 GMT+0530 (India Standard Time)"
+                    datetime: "Mon Feb 18 2021 11:52:40 GMT+0530 (India Standard Time)",
+                    toBankName: BankNameEnum.Technovert
                 },
                 {
                     id: `TXN-Tec-20-2-2021-1613825167894-${technovertClientId2}-20-2-2021-1613825888894`,
@@ -102,7 +109,8 @@ const technovertBank: IBank = {
                     fromAccountId: technovertClientId2,
                     toAccountId: technovertClientId1,
                     status: TransactionStatusEnum.Success,
-                    datetime: "Mon Feb 17 2021 11:52:40 GMT+0530 (India Standard Time)"
+                    datetime: "Mon Feb 17 2021 11:52:40 GMT+0530 (India Standard Time)",
+                    toBankName: BankNameEnum.Technovert
                 }
             ],
             status: AccountStatusEnum.Open
@@ -119,7 +127,8 @@ const technovertBank: IBank = {
                     fromAccountId: technovertClientId1,
                     toAccountId: technovertClientId3,
                     status: TransactionStatusEnum.Revoked,
-                    datetime: "Mon Feb 19 2021 19:52:40 GMT+0530 (India Standard Time)"
+                    datetime: "Mon Feb 19 2021 19:52:40 GMT+0530 (India Standard Time)",
+                    toBankName: BankNameEnum.Technovert
                 }
             ],
             status: AccountStatusEnum.Close
@@ -157,7 +166,8 @@ const saketaBank: IBank = {
                     fromAccountId: saketaClientId1,
                     toAccountId: saketaClientId1,
                     status: TransactionStatusEnum.Success,
-                    datetime: "Mon Feb 19 2021 19:52:40 GMT+0530 (India Standard Time)"
+                    datetime: "Mon Feb 19 2021 19:52:40 GMT+0530 (India Standard Time)",
+                    toBankName: BankNameEnum.Saketa
                 },
             ],
             status: AccountStatusEnum.Open
@@ -174,7 +184,8 @@ const saketaBank: IBank = {
                     fromAccountId: saketaClientId2,
                     toAccountId: saketaClientId2,
                     status: TransactionStatusEnum.Success,
-                    datetime: "Mon Feb 19 2021 19:52:40 GMT+0530 (India Standard Time)"
+                    datetime: "Mon Feb 19 2021 19:52:40 GMT+0530 (India Standard Time)",
+                    toBankName: BankNameEnum.Saketa
                 },
                 {
                     id: `TXN-${saketaBankId}-${saketaClientId1}-20-2-2021-1613825888894`,
@@ -182,7 +193,8 @@ const saketaBank: IBank = {
                     fromAccountId: saketaClientId2,
                     toAccountId: saketaClientId2,
                     status: TransactionStatusEnum.Success,
-                    datetime: "Mon Feb 18 2021 19:52:40 GMT+0530 (India Standard Time)"
+                    datetime: "Mon Feb 18 2021 19:52:40 GMT+0530 (India Standard Time)",
+                    toBankName: BankNameEnum.Saketa
                 },
             ],
             status: AccountStatusEnum.Open
@@ -217,7 +229,8 @@ const kekaBank: IBank = {
                     fromAccountId: kekaClientId,
                     toAccountId: kekaClientId,
                     status: TransactionStatusEnum.Success,
-                    datetime: "Mon Feb 21 2021 19:52:40 GMT+0530 (India Standard Time)"
+                    datetime: "Mon Feb 21 2021 19:52:40 GMT+0530 (India Standard Time)",
+                    toBankName: BankNameEnum.Keka
                 },
             ],
             status: AccountStatusEnum.Open

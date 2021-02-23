@@ -32,8 +32,10 @@ function App() {
       setBankDB(temp.technovert)
     } else if (bankName === BankNameEnum.Saketa) {
       setBankDB(temp.saketa)
-    } else {
+    } else if (bankName === BankNameEnum.Keka) {
       setBankDB(temp.keka)
+    } else {
+      setBankDB(defaultBank)
     }
   }
 

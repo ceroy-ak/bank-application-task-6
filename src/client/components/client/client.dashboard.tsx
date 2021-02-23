@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import IDashboard from '../../common/interfaces/bank.dashboard.interface'
-import { PrimaryButton, Modal, TextField, DefaultButton } from '@fluentui/react'
+import {
+    PrimaryButton, Modal, TextField, DefaultButton, DetailsList, IColumn, CheckboxVisibility, DetailsListLayoutMode, ConstrainMode,
+    IViewport, TooltipHost, IStyleFunctionOrObject, IDetailsListStyleProps, IDetailsListStyles, IDetailsColumnStyleProps, IDetailsColumnStyles
+} from '@fluentui/react'
 import { useHistory } from 'react-router-dom'
-import ClientTransaction from './client.transaction'
 import TransactionStatus from '../../common/interfaces/transaction.status.enum'
 import { useBoolean } from '@uifabric/react-hooks'
 import ITransaction from '../../common/interfaces/client.transaction.interface'
 import TransactionStatusEnum from '../../common/interfaces/transaction.status.enum'
 import { createTransactionId } from '../../common/services/bank.id.creation'
+import BankNameEnum from '../../common/interfaces/bank.name.enum'
 
 function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: IDashboard) {
 
@@ -21,12 +24,14 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
 
     interface ITransactAmount {
         toAccountId: string,
-        amount: string
+        amount: string,
+        toBankName: BankNameEnum
     }
 
     const [transactAmount, setTransactAmount] = useState<ITransactAmount>({
         amount: '0',
-        toAccountId: loginSession.currentId!
+        toAccountId: loginSession.currentId!,
+        toBankName: BankNameEnum.None
     })
 
     if (loginSession.currentId === undefined) {
@@ -83,7 +88,8 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
             toAccountId: loginSession.currentId!,
             status: TransactionStatusEnum.Success,
             id: createTransactionId(bankDB.id, loginSession.currentId!),
-            datetime: Date.now().toString()
+            datetime: Date.now().toString(),
+            toBankName: bankDB.enum
         }
         transactions.unshift(tempTransaction)
 
@@ -110,7 +116,8 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
             toAccountId: loginSession.currentId!,
             status: TransactionStatusEnum.Success,
             id: createTransactionId(bankDB.id, loginSession.currentId!),
-            datetime: Date.now().toString()
+            datetime: Date.now().toString(),
+            toBankName: bankDB.enum
         }
         transactions.unshift(tempTransaction)
 
@@ -136,7 +143,8 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
                 toAccountId: transactAmount.toAccountId,
                 id: createTransactionId(bankDB.id, loginSession.currentId!),
                 status: TransactionStatusEnum.Success,
-                datetime: Date.now().toString()
+                datetime: Date.now().toString(),
+                toBankName: transactAmount.toBankName
             }
 
             bankDB.client.forEach((client) => {
@@ -153,6 +161,116 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
         }
 
     }
+
+
+
+    //Columns for DetailsList
+    const columns: IColumn[] = [
+        {
+            key: "dateTime",
+            minWidth: 50,
+            maxWidth: 100,
+            name: "Date & Time",
+            onRender: (item: ITransaction) => {
+                const date = new Date(item.datetime)
+                return (
+                    <TooltipHost
+                        content={date.toLocaleTimeString()}
+                    >
+                        {date.toDateString()}
+                    </TooltipHost>)
+            },
+            isResizable: true
+        },
+        {
+            key: "transactionId",
+            minWidth: 50,
+            maxWidth: 450,
+            name: "Transaction ID",
+            onRender: (item: ITransaction) => {
+                return (
+                    <TooltipHost
+                        content={item.id}
+                    >
+                        {item.id}
+                    </TooltipHost>)
+            },
+            isResizable: true
+        },
+        {
+            key: "amount",
+            minWidth: 50,
+            maxWidth: 120,
+            name: "Amount",
+            isResizable: true,
+            onRender: (item: ITransaction) => {
+                let amount = Math.abs(item.amount)
+                return <span><b>&#8377; {amount}</b></span>
+            }
+        },
+        {
+            key: "receiver",
+            minWidth: 80,
+            maxWidth: 400,
+            name: "To",
+            onRender: (item: ITransaction) => {
+                let receiverText = "unknown"
+
+                if (item.toAccountId === item.fromAccountId) {
+                    receiverText = "Self"
+                } else {
+                    if (item.toBankName === bankDB.enum) {
+                        receiverText = `${item.toAccountId} - ${(bankDB.enum === BankNameEnum.Technovert) ? 'Technovert Bank' : (bankDB.enum === BankNameEnum.Keka) ? 'Keka Bank' : 'Saketa Bank'}`
+                    }
+                }
+                return <span>{receiverText}</span>
+            },
+            isResizable: true
+        },
+        {
+            key: "type",
+            minWidth: 50,
+            maxWidth: 120,
+            isResizable: true,
+            name: "Type",
+            onRender: (item: ITransaction) => {
+                let type = "unknown"
+
+                if (item.toAccountId === item.fromAccountId) {
+                    if (item.amount < 0) {
+                        type = "Withdraw"
+                    } else {
+                        type = "Deposit"
+                    }
+                } else {
+                    if (item.amount < 0) {
+                        type = "Transact - Sent"
+                    } else {
+                        type = "Transact - Received"
+                    }
+                }
+                return <span>{type}</span>
+            },
+        },
+        {
+            key: "status",
+            minWidth: 50,
+            maxWidth: 50,
+            name: "Status",
+            onRender: (item: ITransaction) => {
+                if (item.status === TransactionStatus.Success)
+                    return <span style={{ color: "green" }}>Success</span>
+                else return <span style={{ color: "red" }}>Failed</span>
+            },
+            isResizable: true
+        },
+
+    ]
+
+    //Booleans for all the Modals in Form Validation
+    const [isDepositValid, { setTrue: invalidDeposit, setFalse: validDeposit }] = useBoolean(true)
+
+
 
     return (
         <div className="ms-Grid" dir="ltr">
@@ -186,16 +304,23 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
             <div className="ms-Grid-row">
 
                 {(transactions.length === 0) ? <p>No Transactions to Show</p> : <></>}
-                {
-                    transactions.map((value) => {
-                        return <ClientTransaction amount={value.amount} fromAccountId={value.fromAccountId} id={value.id} status={value.status} toAccountId={value.toAccountId} key={value.id} bankDB={bankDB} />
-                    })
-                }
+                <DetailsList
+
+                    items={transactions}
+                    constrainMode={ConstrainMode.unconstrained}
+                    layoutMode={DetailsListLayoutMode.justified}
+                    columns={columns}
+                    checkboxVisibility={CheckboxVisibility.hidden}
+                />
+
             </div>
 
             <Modal isOpen={isDepositModal} onDismiss={dismissDepositModal}>
-                <TextField label="Deposit Amount" onChange={(e, value) => setDepositAmount(value!)} />
-                <PrimaryButton text="Deposit" onClick={depositAmountProcess} />
+                <TextField label="Enter Deposit Amount" type="number" onChange={(e, value) => {
+                    if (value?.length === 0) invalidDeposit()
+                    else validDeposit()
+                }} />
+                <PrimaryButton text="Deposit" onClick={depositAmountProcess} disabled={isDepositValid} />
                 <DefaultButton text="Cancel" onClick={dismissDepositModal} />
             </Modal>
 

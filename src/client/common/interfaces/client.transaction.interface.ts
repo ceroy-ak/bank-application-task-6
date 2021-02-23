@@ -1,4 +1,5 @@
 import TransactionStatusEnum from './transaction.status.enum'
+import BankNameEnum from './bank.name.enum'
 
 interface ITransaction {
     id: string
@@ -7,6 +8,7 @@ interface ITransaction {
     fromAccountId: string
     status: TransactionStatusEnum
     datetime: string
+    toBankName: BankNameEnum
 }
 
 export default ITransaction
