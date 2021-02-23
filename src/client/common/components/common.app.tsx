@@ -9,6 +9,7 @@ import { initializeIcons } from '@fluentui/react'
 import initMultiBank from '../services/bank.initialState'
 import IBank from '../interfaces/bank.interface'
 import BankNameEnum from '../interfaces/bank.name.enum'
+import ITransaction from '../interfaces/client.transaction.interface'
 
 function App() {
 
@@ -48,6 +49,42 @@ function App() {
     }
   }
 
+  function otherBankTransaction(transaction: ITransaction) {
+
+    let validToAccount: Boolean = false
+    let tempMultiBank = { ...multiBank }
+    if (transaction.toBankName === BankNameEnum.Saketa) {
+      tempMultiBank.saketa.client.forEach((client) => {
+        if (client.id === transaction.toAccountId) {
+          client.transactions.unshift(transaction)
+          validToAccount = true
+        }
+      })
+    } else if (transaction.toBankName === BankNameEnum.Keka) {
+      tempMultiBank.keka.client.forEach((client) => {
+        if (client.id === transaction.toAccountId) {
+          client.transactions.unshift(transaction)
+          validToAccount = true
+        }
+      })
+    }
+
+    if (validToAccount) {
+      bankDB.client.forEach((client) => {
+        if (client.id === transaction.fromAccountId) {
+          const superTemp = { ...transaction }
+          superTemp.amount = (superTemp.amount + superTemp.charges) * -1
+          client.transactions.unshift(superTemp)
+        }
+      })
+      setBankDB(bankDB)
+      setMultiBank(tempMultiBank)
+    }
+    else {
+      window.alert('No Such user exists. Please check the Payee account Id or Bank')
+    }
+  }
+
   useEffect(() => {
     let temp = { ...multiBank }
     if (bankDB?.enum === BankNameEnum.Technovert) {
@@ -69,7 +106,7 @@ function App() {
             return (
 
               <HomePage bankDB={bankDB!} loginSession={loginSession} setLoginSession={setLoginSession} chooseBank={chooseBank} />)
-          else return <ClientDashboard bankDB={bankDB!} loginSession={loginSession} setBankDB={setBankDB} setLoginSession={setLoginSession} />
+          else return <ClientDashboard bankDB={bankDB!} loginSession={loginSession} setBankDB={setBankDB} setLoginSession={setLoginSession} otherBankTransfer={otherBankTransaction} />
         }} />
         <Route path='/staff/:id' exact render={() => {
           if (loginSession.currentId === undefined || loginSession.isLoggedIn === false || loginSession.isStaff !== true)

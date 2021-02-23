@@ -16,7 +16,11 @@ import { createTransactionId } from '../../common/services/bank.id.creation'
 import BankNameEnum from '../../common/interfaces/bank.name.enum'
 import { v4 as uuidV4 } from 'uuid'
 
-function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: IDashboard) {
+
+interface IClientDashBoard extends IDashboard {
+    otherBankTransfer: Function
+}
+function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, otherBankTransfer }: IClientDashBoard) {
 
     //Booleans to control the opening and closing of the modals and setting of the values
     const history = useHistory()
@@ -26,15 +30,16 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
 
     //Common states for Modal
     const [exchangeCurrency, setExchangeCurrency] = useState('INR')
-    const [transferCharge, setTransferCharge] = useState(0)
+    const [isAmountValid, { setTrue: amountInvalid, setFalse: amountValid }] = useBoolean(true)
 
 
     //Deposit Modal
     const [isDepositModal, { setTrue: openDepositModal, setFalse: dismissDepositModal }] = useBoolean(false)
     const [depositAmount, setDepositAmount] = useState('0')
-    const [isAmountValid, { setTrue: amountInvalid, setFalse: amountValid }] = useBoolean(true)
 
-
+    //Transaction Modal
+    const [transferType, setTransferType] = useState('rtgs')
+    const [transferToBank, setTransferToBank] = useState(bankDB.enum)
 
     //Interface for the Transact Action
     interface ITransactAmount {
@@ -168,33 +173,56 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
 
     function transactAmountProcess() {
         dismissTransactModal()
-
-        if (Number.parseFloat(transactAmount.amount) > balance) {
-            window.alert('Insufficient Fund')
-        }
-        else {
-            let tempTransaction: ITransaction = {
-                amount: Number.parseFloat(transactAmount.amount),
-                fromAccountId: loginSession.currentId!,
-                toAccountId: transactAmount.toAccountId,
-                id: createTransactionId(bankDB.id, loginSession.currentId!),
-                status: TransactionStatusEnum.Success,
-                datetime: Date.now().toString(),
-                toBankName: transactAmount.toBankName,
-                charges: transferCharge
+        try {
+            if (Number.parseFloat(transactAmount.amount) > balance) {
+                window.alert('Insufficient Fund')
             }
+            else {
 
-            bankDB.client.forEach((client) => {
-                if (client.id === tempTransaction.fromAccountId) {
-                    const superTemp = { ...tempTransaction }
-                    superTemp.amount = superTemp.amount * -1
-                    client.transactions.unshift(superTemp)
-                } else if (client.id === tempTransaction.toAccountId) {
-                    client.transactions.unshift(tempTransaction)
+                let charge: number = 0
+                if (transferToBank === bankDB.enum) {
+                    if (transferType === 'rtgs') {
+                        charge = bankDB.rtgs.same
+                    } else {
+                        charge = bankDB.rtgs.other
+                    }
+                } else {
+                    if (transferType === 'rtgs') {
+                        charge = bankDB.rtgs.same
+                    } else {
+                        charge = bankDB.rtgs.other
+                    }
                 }
-            })
+                const date = new Date()
+                let tempTransaction: ITransaction = {
+                    amount: Number.parseFloat(transactAmount.amount),
+                    fromAccountId: loginSession.currentId!,
+                    toAccountId: transactAmount.toAccountId,
+                    id: createTransactionId(bankDB.id, loginSession.currentId!),
+                    status: TransactionStatusEnum.Success,
+                    datetime: date.toString(),
+                    toBankName: transferToBank,
+                    charges: charge
+                }
 
-            setBankDB(bankDB)
+                if (tempTransaction.toBankName === bankDB.enum) {
+                    bankDB.client.forEach((client) => {
+                        if (client.id === tempTransaction.fromAccountId) {
+                            const superTemp = { ...tempTransaction }
+                            superTemp.amount = (superTemp.amount + superTemp.charges) * -1
+                            client.transactions.unshift(superTemp)
+                        } else if (client.id === tempTransaction.toAccountId) {
+                            client.transactions.unshift(tempTransaction)
+                        }
+                    })
+                    setBankDB(bankDB)
+                } else {
+
+                    otherBankTransfer(tempTransaction)
+                }
+            }
+        } catch (e) {
+            window.alert('Something Went Wrong during processing the transaction')
         }
 
     }
@@ -247,6 +275,9 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
                 } else {
                     if (item.toBankName === bankDB.enum) {
                         receiverText = `${item.toAccountId} - ${(bankDB.enum === BankNameEnum.Technovert) ? 'Technovert Bank' : (bankDB.enum === BankNameEnum.Keka) ? 'Keka Bank' : 'Saketa Bank'}`
+                    } else {
+                        receiverText = `${item.toAccountId} - ${(item.toBankName === BankNameEnum.Technovert) ? 'Technovert Bank' : (item.toBankName === BankNameEnum.Keka) ? 'Keka Bank' : 'Saketa Bank'}`
+
                     }
                 }
                 return <span>{receiverText}</span>
@@ -350,6 +381,24 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
     }
     ]
 
+    const bankNameOptions: IDropdownOption[] = [
+        {
+            key: BankNameEnum.Technovert,
+            text: 'Technovert Bank',
+            data: BankNameEnum.Technovert
+        },
+        {
+            key: BankNameEnum.Saketa,
+            text: 'Saketa Bank',
+            data: BankNameEnum.Saketa
+        },
+        {
+            key: BankNameEnum.Keka,
+            text: 'Keka Bank',
+            data: BankNameEnum.Keka
+        },
+    ]
+
 
 
     return (
@@ -435,24 +484,50 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession }: I
                     }
                 }} />
                 <PrimaryButton className="client-dashboard--modal-btn" text="Withdraw" onClick={withdrawAmountProcess} disabled={isAmountValid} />
-                <DefaultButton className="client-dashboard--modal-cancel" text="Cancel" onClick={dismissWithdrawModal} />
+                <DefaultButton className="client-dashboard--modal-cancel" text="Cancel" onClick={() => {
+                    amountInvalid()
+                    dismissDepositModal()
+                }} />
             </Modal>
 
 
 
             {/*Transaction Modal */}
-            <Modal isOpen={isTransactModal} onDismiss={dismissTransactModal}>
+            <Modal isOpen={isTransactModal}>
+                <Dropdown
+                    key={uuidV4()}
+                    defaultSelectedKey={transferToBank}
+                    options={bankNameOptions}
+                    label="Select Bank"
+                    required
+                    onChange={(e, option) => {
+                        setTransferToBank(option?.data)
+                    }}
+                />
+                <TextField label="Payee Account Number" required onChange={(e, value) => transactPayeeIdSet(value!)} />
                 <Dropdown
                     key={uuidV4()}
                     options={transferMode}
                     label="Transfer Mode"
                     required
-                    defaultSelectedKey="rtgs"
+                    defaultSelectedKey={transferType}
+                    onChange={(e, option) => {
+                        setTransferType(option?.key.toString()!)
+                    }}
                 />
-                <TextField label="Transaction Amount" onChange={(e, value) => transactAmountSet(value!)} />
-                <TextField label="Payee Account Number" onChange={(e, value) => transactPayeeIdSet(value!)} />
-                <PrimaryButton text="Transact" onClick={transactAmountProcess} />
-                <DefaultButton text="Cancel" onClick={dismissTransactModal} />
+                <TextField label="Transaction Amount" required prefix="&#8377;" type="number" onChange={(e, value) => {
+                    if (value?.length! > 0) {
+                        amountValid()
+                        transactAmountSet(value!)
+                    } else {
+                        amountInvalid()
+                    }
+                }} minLength={1} />
+                <PrimaryButton text="Transact" onClick={transactAmountProcess} disabled={isAmountValid} />
+                <DefaultButton text="Cancel" onClick={() => {
+                    amountInvalid()
+                    dismissTransactModal()
+                }} />
             </Modal>
 
 
