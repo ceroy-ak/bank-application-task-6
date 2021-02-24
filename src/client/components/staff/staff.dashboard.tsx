@@ -1,6 +1,10 @@
 import React, { useState } from 'react'
 import IDashboard from '../../common/interfaces/bank.dashboard.interface'
-import { PrimaryButton, Panel, TextField, DefaultButton } from '@fluentui/react'
+import {
+    PrimaryButton, Panel, TextField, DefaultButton, Pivot, PivotItem,
+    IStyleFunctionOrObject, IPivotStyleProps, IPivotStyles, PivotLinkSize,
+    Separator
+} from '@fluentui/react'
 import { useBoolean } from '@uifabric/react-hooks'
 import { useHistory } from 'react-router-dom'
 import ClientAccount from './staff.client.account'
@@ -9,9 +13,13 @@ import AccountStatusEnum from '../../common/interfaces/acount.status.enum'
 import { createAccountId } from '../../common/services/bank.id.creation'
 import ITransaction from '../../common/interfaces/client.transaction.interface'
 import TransactionStatus from '../../common/interfaces/transaction.status.enum'
+import BankSettings from './staff.bank.settings'
+
 
 
 function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB }: IDashboard) {
+
+    const staff = bankDB.staff.filter((staff) => staff.username === loginSession.currentId)[0]
 
     const history = useHistory()
     function logOut() {
@@ -89,30 +97,58 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB }: ID
 
     }
 
+    const pivotStyles: IStyleFunctionOrObject<IPivotStyleProps, IPivotStyles> = {
+        root: {
+            paddingBottom: '40px',
+            marginTop: '20px'
+        }
+    }
+
     return (
-        <div>
-            <h1>Staff Dashboard</h1>
-            <PrimaryButton text="Logout" onClick={logOut} />
-            <br />
-            <PrimaryButton text="Add Client" onClick={openAddClient} />
-            <hr />
-            <br />
-            <br />
-            {
-                bankDB.client.map((client) => <ClientAccount key={`xxx-${client.id}`} updateAccount={updateClient} client={client} revokeTransaction={revokeTransaction} deleteAccount={deleteClient} />)
-            }
+        <div className="ms-Grid" dir="ltr">
+            <div className="ms-Grid-row staff-dashboard__title-row">
+                <div className="ms-Grid-col ms-md6">
+                    <h1 className="staff-dashboard--title">Staff Dashboard | {bankDB.name}</h1>
 
-            <Panel isOpen={isAddClient} hasCloseButton={false} title="Add Client" >
+                </div>
+                <div className="ms-Grid-col ms-mdPush5">
+                    <PrimaryButton className="staff-dashboard--logout" text="Logout" onClick={logOut} />
 
+                </div>
+            </div>
+            <div className="ms-Grid-row">
+                <h1 className="staff-dashboard--client-name">Welcome, {staff.name}</h1>
+            </div>
+
+            <Pivot styles={pivotStyles} linkSize={PivotLinkSize.large}>
+                <PivotItem headerText="Clients">
+                    <div className="ms-Grid-row">
+                        <Separator alignContent="end">
+                            <PrimaryButton iconProps={{
+                                iconName: "Add"
+                            }} className="staff-dashboard--add_client-btn" text="Add Client" onClick={openAddClient} />
+                        </Separator>
+                    </div>
+                    <div className="ms-Grid-row">
+                        {(bankDB.client.length === 0) ? <p>No Account Holders to Show</p> : <></>}
+                        {
+                            bankDB.client.map((client) => <ClientAccount key={`xxx-${client.id}`} updateAccount={updateClient} client={client} revokeTransaction={revokeTransaction} deleteAccount={deleteClient} />)
+                        }
+                    </div>
+                </PivotItem>
+                <PivotItem headerText="Bank Settings">
+                    <BankSettings bankDB={bankDB} setBankDB={setBankDB} />
+                </PivotItem>
+            </Pivot>
+
+            <Panel isOpen={isAddClient} hasCloseButton={false} headerText="Add Client" >
                 <form onSubmit={addClient}>
-
-                    <TextField name="name" label="Name" onChange={(e, value) => setName(value!)} />
-                    <TextField name="username" label="Username" onChange={(e, value) => setUsername(value!)} />
-                    <TextField name="password" label="Password" onChange={(e, value) => setPassword(value!)} />
-                    <PrimaryButton text="Add" type="submit" />
-                    <DefaultButton text="Cancel" onClick={dismissAddClient} />
+                    <TextField name="name" className="staff-dashboard--add-client__name" label="Name" onChange={(e, value) => setName(value!)} />
+                    <TextField name="username" className="staff-dashboard--add-client__username" label="Username" onChange={(e, value) => setUsername(value!)} />
+                    <TextField name="password" className="staff-dashboard--add-client__password" label="Password" onChange={(e, value) => setPassword(value!)} />
+                    <PrimaryButton text="Add" type="submit" className="staff-dashboard--add-client__add" />
+                    <DefaultButton text="Cancel" onClick={dismissAddClient} className="staff-dashboard--add-client__cancel" />
                 </form>
-
             </Panel>
         </div>
     )

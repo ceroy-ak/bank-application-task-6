@@ -1,0 +1,67 @@
+.staff-dashboard__title-row {
+  background-color: #0078d4;
+}
+
+.staff-dashboard--title {
+  font-size: 20px;
+  color: #edebe9;
+  font-weight: 500;
+}
+
+.staff-dashboard--logout {
+  color: $ms-color-gray10;
+  font-size: 18px;
+  margin-top: 10px;
+}
+
+.staff-dashboard--client-name {
+  font-size: 25px;
+  color: $ms-color-gray150;
+  font-weight: 500;
+  padding-left: 10px;
+}
+
+.staff-dashboard--add_client-btn {
+  margin-right: 10px;
+  padding: 10px;
+}
+
+.staff-dashboard--add-client {
+  &__name {
+    margin: 20px 0px;
+  }
+
+  &__username {
+    margin: 20px 0px;
+  }
+
+  &__password {
+    margin: 20px 0px;
+  }
+
+  &__add {
+    padding: 10px 40px;
+  }
+
+  &__cancel {
+    padding: 10px 30px;
+    float: right;
+  }
+}
+
+@mixin client--account {
+  padding: 0px 20px 20px 20px;
+  margin: 15px;
+}
+
+.staff-dashboard__client--account {
+  @include client--account();
+  border: 2px solid #e1dfdd;
+  box-shadow: 0px 0px 10px 5px #e1dfdd;
+}
+
+.staff-dashboard__client--account-closed {
+  @include client--account();
+  border: 1px solid #a80000;
+  box-shadow: 0px 0px 10px 0px #a80000;
+}

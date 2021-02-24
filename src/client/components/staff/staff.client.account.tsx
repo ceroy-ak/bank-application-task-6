@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import IAccountHolder from '../../common/interfaces/client.account.interface'
 import AccountStatusEnum from '../../common/interfaces/acount.status.enum'
-import { PrimaryButton, Panel, TextField, DefaultButton, PanelType } from '@fluentui/react'
+import { PrimaryButton, Panel, TextField, DefaultButton, PanelType, Separator } from '@fluentui/react'
 import { useBoolean } from '@uifabric/react-hooks'
 import ClientTransactionStaff from './staff.client.transaction'
 import TransactionStatusEnum from '../../common/interfaces/transaction.status.enum'
@@ -36,32 +36,33 @@ function ClientAccount({ client, deleteAccount, updateAccount, revokeTransaction
 
         updateAccount(tempClient)
     }
-    let balance = Object.values(client.transactions.map((val) => (val.status === TransactionStatusEnum.Success) ? val.amount : 0)).reduce((a, b) => a + b)
+    let balance = Object.values(client.transactions.map((val) => (val.status === TransactionStatusEnum.Success) ? val.amount : 0).concat([0])).reduce((a?, b?) => a + b) ?? 0
     return (
-        <div>
-            <h1>Account Holder: {client.name}</h1>
-            <p>{client.id}</p>
-            <p>Account Status: {(client.status === AccountStatusEnum.Open) ? "Active" : "Closed"}</p>
-            <p>Current balance: &#8377;{balance}</p>
-            <PrimaryButton text="View Account" onClick={openViewAccount} />
-            {
-                (client.status === AccountStatusEnum.Open) ?
-                    <>
-                        <PrimaryButton text="Update Account" onClick={openAddClient} />
-                        <PrimaryButton text="Delete Account" onClick={() => deleteAccount(client)} />
-                    </>
-                    : <></>
-            }
-            <hr />
+        <div className="ms-Grid-col ms-md6">
+            <div className={`${(client.status === AccountStatusEnum.Open) ? 'staff-dashboard__client--account' : 'staff-dashboard__client--account-closed'}`}>
+                <Separator alignContent="center"><h1>{client.name}</h1></Separator>
+                <p>{client.id}</p>
+                <p>Account Status: {(client.status === AccountStatusEnum.Open) ? "Active" : "Closed"}</p>
+                <p>Current balance: &#8377;{balance}</p>
+                <PrimaryButton text="View Account" onClick={openViewAccount} />
+                {
+                    (client.status === AccountStatusEnum.Open) ?
+                        <>
+                            <PrimaryButton text="Update Account" onClick={openAddClient} />
+                            <PrimaryButton text="Delete Account" onClick={() => deleteAccount(client)} />
+                        </>
+                        : <></>
+                }
+            </div>
 
-            <Panel isOpen={isAddClient} hasCloseButton={false} headerText="Add Client" >
+            <Panel isOpen={isAddClient} hasCloseButton={false} headerText="Update Client" >
                 <form onSubmit={(e) => updateAccountProxy(e)}>
 
-                    <TextField name="name" value={name} label="Name" onChange={(e, value) => setName(value!)} />
-                    <TextField name="username" value={username} label="Username" onChange={(e, value) => setUsername(value!)} />
-                    <TextField name="password" value={password} label="Password" onChange={(e, value) => setPassword(value!)} />
-                    <PrimaryButton text="Add" type="submit" />
-                    <DefaultButton text="Cancel" onClick={dismissAddClient} />
+                    <TextField className="staff-dashboard--add-client__name" name="name" value={name} label="Name" onChange={(e, value) => setName(value!)} />
+                    <TextField className="staff-dashboard--add-client__username" name="username" value={username} label="Username" onChange={(e, value) => setUsername(value!)} />
+                    <TextField className="staff-dashboard--add-client__password" name="password" value={password} label="Password" onChange={(e, value) => setPassword(value!)} />
+                    <PrimaryButton text="Add" type="submit" className="staff-dashboard--add-client__add" />
+                    <DefaultButton text="Cancel" onClick={dismissAddClient} className="staff-dashboard--add-client__cancel" />
                 </form>
             </Panel>
 
