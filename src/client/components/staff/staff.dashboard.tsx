@@ -14,10 +14,14 @@ import { createAccountId } from '../../common/services/bank.id.creation'
 import ITransaction from '../../common/interfaces/client.transaction.interface'
 import TransactionStatus from '../../common/interfaces/transaction.status.enum'
 import BankSettings from './staff.bank.settings'
+import BankNameEnum from '../../common/interfaces/bank.name.enum'
 
 
-
-function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB }: IDashboard) {
+interface IStaffDashboard extends IDashboard {
+    chooseBank: Function,
+    revokeTransactionFromAccount: Function
+}
+function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, chooseBank, revokeTransactionFromAccount }: IStaffDashboard) {
 
     const staff = bankDB.staff.filter((staff) => staff.username === loginSession.currentId)[0]
 
@@ -28,6 +32,7 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB }: ID
         newLoginSession.isLoggedIn = false
         newLoginSession.isStaff = false
         setLoginSession(newLoginSession)
+        chooseBank(BankNameEnum.None)
         history.push('/')
     }
 
@@ -81,20 +86,36 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB }: ID
     }
 
     function revokeTransaction(transaction: ITransaction) {
-        let newBankDB = { ...bankDB }
-        newBankDB.client.forEach((value) => {
-            if (value.id === transaction.toAccountId || value.id === transaction.fromAccountId) {
-                value.transactions.forEach((t) => {
-                    if (t.id === transaction.id) {
-                        t.status = TransactionStatus.Revoked
-                        console.log(t);
-                    }
-                })
-            }
-        })
+        if (transaction.toBankName === transaction.fromBankName) {
+            let newBankDB = { ...bankDB }
+            newBankDB.client.forEach((value) => {
+                if (value.id === transaction.toAccountId || value.id === transaction.fromAccountId) {
+                    value.transactions.forEach((t) => {
+                        if (t.id === transaction.id) {
+                            t.status = TransactionStatus.Revoked
+                            console.log(t);
+                        }
+                    })
+                }
+            })
 
-        setBankDB(newBankDB)
+            setBankDB(newBankDB)
+        } else {
+            let newBankDB = { ...bankDB }
+            newBankDB.client.forEach((value) => {
+                if (value.id === transaction.toAccountId) {
+                    value.transactions.forEach((t) => {
+                        if (t.id === transaction.id) {
+                            t.status = TransactionStatus.Revoked
+                            console.log(t);
+                        }
+                    })
+                }
+            })
 
+            setBankDB(newBankDB)
+            revokeTransactionFromAccount(transaction)
+        }
     }
 
     const pivotStyles: IStyleFunctionOrObject<IPivotStyleProps, IPivotStyles> = {
@@ -103,6 +124,9 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB }: ID
             marginTop: '20px'
         }
     }
+
+    const activeAccounts = bankDB.client.filter((client) => (client.status === AccountStatusEnum.Open))
+    const closedAccounts = bankDB.client.filter((client) => (client.status === AccountStatusEnum.Close))
 
     return (
         <div className="ms-Grid" dir="ltr">
@@ -131,8 +155,17 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB }: ID
                     </div>
                     <div className="ms-Grid-row">
                         {(bankDB.client.length === 0) ? <p>No Account Holders to Show</p> : <></>}
+                        <h1 className="staff-dashboard--account-type">Active Accounts</h1>
+                        {(activeAccounts.length === 0) ? <p>No Active Account Holders</p> : <></>}
                         {
-                            bankDB.client.map((client) => <ClientAccount key={`xxx-${client.id}`} updateAccount={updateClient} client={client} revokeTransaction={revokeTransaction} deleteAccount={deleteClient} />)
+                            activeAccounts.map((client) => <ClientAccount bankName={bankDB.enum} key={`xxx-${client.id}`} updateAccount={updateClient} client={client} revokeTransaction={revokeTransaction} deleteAccount={deleteClient} />)
+                        }
+                    </div>
+                    <div className="ms-Grid-row">
+                        <h1 className="staff-dashboard--account-type">Closed Accounts</h1>
+                        {(activeAccounts.length === 0) ? <p>No Closed Account Holders</p> : <></>}
+                        {
+                            closedAccounts.map((client) => <ClientAccount bankName={bankDB.enum} key={`xxx-${client.id}`} updateAccount={updateClient} client={client} revokeTransaction={revokeTransaction} deleteAccount={deleteClient} />)
                         }
                     </div>
                 </PivotItem>

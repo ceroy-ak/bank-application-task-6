@@ -211,16 +211,26 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
                 }
 
                 if (tempTransaction.toBankName === bankDB.enum) {
+                    let flagAccountValid = false
                     bankDB.client.forEach((client) => {
-                        if (client.id === tempTransaction.fromAccountId) {
-                            const superTemp = { ...tempTransaction }
-                            superTemp.amount = (superTemp.amount + superTemp.charges) * -1
-                            client.transactions.unshift(superTemp)
-                        } else if (client.id === tempTransaction.toAccountId) {
+                        if (client.id === tempTransaction.toAccountId) {
                             client.transactions.unshift(tempTransaction)
+                            flagAccountValid = true
                         }
                     })
-                    setBankDB(bankDB)
+
+                    if (flagAccountValid) {
+                        bankDB.client.forEach((client) => {
+                            if (client.id === tempTransaction.fromAccountId) {
+                                const superTemp = { ...tempTransaction }
+                                superTemp.amount = (superTemp.amount + superTemp.charges) * -1
+                                client.transactions.unshift(superTemp)
+                            }
+                        })
+                        setBankDB(bankDB)
+                    } else {
+                        window.alert('No Such account exists. Please check Bank and Account Id')
+                    }
                 } else {
 
                     otherBankTransfer(tempTransaction)

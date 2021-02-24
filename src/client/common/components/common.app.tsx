@@ -10,6 +10,7 @@ import initMultiBank from '../services/bank.initialState'
 import IBank from '../interfaces/bank.interface'
 import BankNameEnum from '../interfaces/bank.name.enum'
 import ITransaction from '../interfaces/client.transaction.interface'
+import TransactionStatus from '../interfaces/transaction.status.enum'
 
 function App() {
 
@@ -49,6 +50,44 @@ function App() {
     }
   }
 
+  function revokeTransactionFromAccount(transaction: ITransaction) {
+    let tempMultiBank = { ...multiBank }
+    if (transaction.fromBankName === BankNameEnum.Technovert) {
+      tempMultiBank.technovert.client.forEach((client) => {
+        if (client.id === transaction.fromAccountId) {
+          client.transactions.forEach((t) => {
+            if (t.id === transaction.id) {
+              t.status = TransactionStatus.Revoked
+            }
+          })
+        }
+      })
+    } else if (transaction.fromBankName === BankNameEnum.Saketa) {
+      tempMultiBank.saketa.client.forEach((client) => {
+        if (client.id === transaction.fromAccountId) {
+          client.transactions.forEach((t) => {
+            if (t.id === transaction.id) {
+              t.status = TransactionStatus.Revoked
+            }
+          })
+        }
+      })
+
+    } else if (transaction.fromBankName === BankNameEnum.Keka) {
+      tempMultiBank.keka.client.forEach((client) => {
+        if (client.id === transaction.fromAccountId) {
+          client.transactions.forEach((t) => {
+            if (t.id === transaction.id) {
+              t.status = TransactionStatus.Revoked
+            }
+          })
+        }
+      })
+
+    }
+
+    setMultiBank(tempMultiBank)
+  }
   function otherBankTransaction(transaction: ITransaction) {
 
     let validToAccount: Boolean = false
@@ -62,6 +101,13 @@ function App() {
       })
     } else if (transaction.toBankName === BankNameEnum.Keka) {
       tempMultiBank.keka.client.forEach((client) => {
+        if (client.id === transaction.toAccountId) {
+          client.transactions.unshift(transaction)
+          validToAccount = true
+        }
+      })
+    } else if (transaction.toBankName === BankNameEnum.Technovert) {
+      tempMultiBank.technovert.client.forEach((client) => {
         if (client.id === transaction.toAccountId) {
           client.transactions.unshift(transaction)
           validToAccount = true
@@ -111,7 +157,7 @@ function App() {
         <Route path='/staff/:id' exact render={() => {
           if (loginSession.currentId === undefined || loginSession.isLoggedIn === false || loginSession.isStaff !== true)
             return <HomePage bankDB={bankDB!} loginSession={loginSession} setLoginSession={setLoginSession} chooseBank={chooseBank} />
-          else return <StaffDashboard bankDB={bankDB!} loginSession={loginSession} setBankDB={setBankDB} setLoginSession={setLoginSession} />
+          else return <StaffDashboard revokeTransactionFromAccount={revokeTransactionFromAccount} bankDB={bankDB!} chooseBank={chooseBank} loginSession={loginSession} setBankDB={setBankDB} setLoginSession={setLoginSession} />
         }} />
         <Route component={PageNotFound} />
       </Switch>
