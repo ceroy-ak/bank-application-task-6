@@ -18,9 +18,10 @@ import { v4 as uuidV4 } from 'uuid'
 
 
 interface IClientDashBoard extends IDashboard {
-    otherBankTransfer: Function
+    otherBankTransfer: Function,
+    chooseBank: Function
 }
-function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, otherBankTransfer }: IClientDashBoard) {
+function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, otherBankTransfer, chooseBank }: IClientDashBoard) {
 
     //Booleans to control the opening and closing of the modals and setting of the values
     const history = useHistory()
@@ -77,6 +78,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
         newLoginSession.currentId = undefined
         newLoginSession.isLoggedIn = false
         newLoginSession.isStaff = false
+        chooseBank(BankNameEnum.None)
         setLoginSession(newLoginSession)
         history.push('/')
     }
@@ -122,6 +124,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
                 id: createTransactionId(bankDB.id, loginSession.currentId!),
                 datetime: date.toString(),
                 toBankName: bankDB.enum,
+                fromBankName: bankDB.enum,
                 charges: 0
             }
             transactions.unshift(tempTransaction)
@@ -158,6 +161,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
             id: createTransactionId(bankDB.id, loginSession.currentId!),
             datetime: date.toString(),
             toBankName: bankDB.enum,
+            fromBankName: bankDB.enum,
             charges: 0
         }
         transactions.unshift(tempTransaction)
@@ -184,13 +188,13 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
                     if (transferType === 'rtgs') {
                         charge = bankDB.rtgs.same
                     } else {
-                        charge = bankDB.rtgs.other
+                        charge = bankDB.imps.same
                     }
                 } else {
                     if (transferType === 'rtgs') {
-                        charge = bankDB.rtgs.same
-                    } else {
                         charge = bankDB.rtgs.other
+                    } else {
+                        charge = bankDB.imps.other
                     }
                 }
                 const date = new Date()
@@ -202,6 +206,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
                     status: TransactionStatusEnum.Success,
                     datetime: date.toString(),
                     toBankName: transferToBank,
+                    fromBankName: bankDB.enum,
                     charges: charge
                 }
 
@@ -250,7 +255,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
         {
             key: "transactionId",
             minWidth: 50,
-            maxWidth: 450,
+            maxWidth: 250,
             name: "Transaction ID",
             onRender: (item: ITransaction) => {
                 return (
@@ -263,14 +268,37 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
             isResizable: true
         },
         {
+            key: "sender",
+            minWidth: 80,
+            maxWidth: 250,
+            name: "From",
+            onRender: (item: ITransaction) => {
+                let senderText = "unknown"
+
+                if (item.toAccountId === item.fromAccountId || item.fromAccountId === loginSession.currentId) {
+                    senderText = "Self"
+                } else {
+                    if (item.fromBankName === bankDB.enum) {
+                        senderText = `${item.fromAccountId} - ${(bankDB.enum === BankNameEnum.Technovert) ? 'Technovert Bank' : (bankDB.enum === BankNameEnum.Keka) ? 'Keka Bank' : 'Saketa Bank'}`
+                    } else {
+                        senderText = `${item.fromAccountId} - ${(item.fromBankName === BankNameEnum.Technovert) ? 'Technovert Bank' : (item.fromBankName === BankNameEnum.Keka) ? 'Keka Bank' : 'Saketa Bank'}`
+
+                    }
+                }
+                return <TooltipHost content={senderText}>{senderText}</TooltipHost>
+            },
+            isResizable: true
+        },
+
+        {
             key: "receiver",
             minWidth: 80,
-            maxWidth: 310,
+            maxWidth: 250,
             name: "To",
             onRender: (item: ITransaction) => {
                 let receiverText = "unknown"
 
-                if (item.toAccountId === item.fromAccountId) {
+                if (item.toAccountId === item.fromAccountId || item.toAccountId === loginSession.currentId) {
                     receiverText = "Self"
                 } else {
                     if (item.toBankName === bankDB.enum) {
@@ -280,7 +308,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
 
                     }
                 }
-                return <span>{receiverText}</span>
+                return <TooltipHost content={receiverText}>{receiverText}</TooltipHost>
             },
             isResizable: true
         },
@@ -493,7 +521,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
 
 
             {/*Transaction Modal */}
-            <Modal isOpen={isTransactModal}>
+            <Modal isOpen={isTransactModal} className="client-dashboard__transact-modal">
                 <Dropdown
                     key={uuidV4()}
                     defaultSelectedKey={transferToBank}
@@ -503,8 +531,9 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
                     onChange={(e, option) => {
                         setTransferToBank(option?.data)
                     }}
+                    className="client-dashboard__transact-modal--bank"
                 />
-                <TextField label="Payee Account Number" required onChange={(e, value) => transactPayeeIdSet(value!)} />
+                <TextField label="Payee Account Number" required onChange={(e, value) => transactPayeeIdSet(value!)} className="client-dashboard__transact-modal--account" />
                 <Dropdown
                     key={uuidV4()}
                     options={transferMode}
@@ -514,8 +543,9 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
                     onChange={(e, option) => {
                         setTransferType(option?.key.toString()!)
                     }}
+                    className="client-dashboard__transact-modal--transfer"
                 />
-                <TextField label="Transaction Amount" required prefix="&#8377;" type="number" onChange={(e, value) => {
+                <TextField label="Transaction Amount" required prefix="&#8377;" type="number" className="client-dashboard__transact-modal--amount" onChange={(e, value) => {
                     if (value?.length! > 0) {
                         amountValid()
                         transactAmountSet(value!)
@@ -523,8 +553,8 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
                         amountInvalid()
                     }
                 }} minLength={1} />
-                <PrimaryButton text="Transact" onClick={transactAmountProcess} disabled={isAmountValid} />
-                <DefaultButton text="Cancel" onClick={() => {
+                <PrimaryButton text="Transact" className="client-dashboard__transact-modal--submit" onClick={transactAmountProcess} disabled={isAmountValid} />
+                <DefaultButton text="Cancel" className="client-dashboard__transact-modal--cancel" onClick={() => {
                     amountInvalid()
                     dismissTransactModal()
                 }} />

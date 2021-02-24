@@ -9,6 +9,7 @@ interface ITransaction {
     fromAccountId: string
     status: TransactionStatusEnum
     datetime: string
+    fromBankName: BankNameEnum
     toBankName: BankNameEnum
 }
 

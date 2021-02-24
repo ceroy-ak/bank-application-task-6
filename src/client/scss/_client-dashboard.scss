@@ -75,3 +75,26 @@
     padding: 40px 30px 0px 30px;
   }
 }
+
+.client-dashboard__transact-modal {
+  &--bank {
+    padding: 10px 30px 0px 30px;
+  }
+  &--account {
+    padding: 10px 30px 0px 30px;
+  }
+  &--transfer {
+    padding: 10px 30px 0px 30px;
+  }
+  &--amount {
+    padding: 10px 30px 0px 30px;
+  }
+  &--submit {
+    padding: 5px 20px;
+    margin: 20px 10px 10px 30px;
+  }
+  &--cancel {
+    padding: 5px 20px;
+    margin: 20px 30px 10px 30px;
+  }
+}

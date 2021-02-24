@@ -106,7 +106,7 @@ function App() {
             return (
 
               <HomePage bankDB={bankDB!} loginSession={loginSession} setLoginSession={setLoginSession} chooseBank={chooseBank} />)
-          else return <ClientDashboard bankDB={bankDB!} loginSession={loginSession} setBankDB={setBankDB} setLoginSession={setLoginSession} otherBankTransfer={otherBankTransaction} />
+          else return <ClientDashboard chooseBank={chooseBank} bankDB={bankDB!} loginSession={loginSession} setBankDB={setBankDB} setLoginSession={setLoginSession} otherBankTransfer={otherBankTransaction} />
         }} />
         <Route path='/staff/:id' exact render={() => {
           if (loginSession.currentId === undefined || loginSession.isLoggedIn === false || loginSession.isStaff !== true)

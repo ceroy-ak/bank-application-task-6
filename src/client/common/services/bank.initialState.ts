@@ -64,6 +64,7 @@ const technovertBank: IBank = {
                     toAccountId: technovertClientId1,
                     status: TransactionStatusEnum.Success,
                     datetime: "Mon Feb 20 2021 11:52:40 GMT+0530 (India Standard Time)",
+                    fromBankName: BankNameEnum.Technovert,
                     toBankName: BankNameEnum.Technovert,
                     charges: 0
                 },
@@ -75,7 +76,8 @@ const technovertBank: IBank = {
                     status: TransactionStatusEnum.Success,
                     datetime: "Mon Feb 20 2021 10:52:40 GMT+0530 (India Standard Time)",
                     toBankName: BankNameEnum.Technovert,
-                    charges: 0
+                    charges: 0,
+                    fromBankName: BankNameEnum.Technovert,
                 },
                 {
                     id: "TXN-Tec-20-2-2021-1613825167894-Abh-20-2-2021-1613825167894-20-2-2021-1613821111111",
@@ -85,7 +87,8 @@ const technovertBank: IBank = {
                     status: TransactionStatusEnum.Revoked,
                     datetime: "Mon Feb 19 2021 19:52:40 GMT+0530 (India Standard Time)",
                     toBankName: BankNameEnum.Technovert,
-                    charges: 0
+                    charges: 0,
+                    fromBankName: BankNameEnum.Technovert,
                 },
                 {
                     id: "TXN-Tec-20-2-2021-1613825167894-Abh-20-2-2021-1613825167894-20-2-2021-1613825345743",
@@ -95,7 +98,8 @@ const technovertBank: IBank = {
                     status: TransactionStatusEnum.Success,
                     datetime: "Mon Feb 18 2021 11:52:40 GMT+0530 (India Standard Time)",
                     toBankName: BankNameEnum.Technovert,
-                    charges: 0
+                    charges: 0,
+                    fromBankName: BankNameEnum.Technovert,
                 },
                 {
                     id: `TXN-Tec-20-2-2021-1613825167894-${technovertClientId2}-20-2-2021-1613825888894`,
@@ -105,7 +109,8 @@ const technovertBank: IBank = {
                     status: TransactionStatusEnum.Success,
                     datetime: "Mon Feb 17 2021 11:52:40 GMT+0530 (India Standard Time)",
                     toBankName: BankNameEnum.Technovert,
-                    charges: 0
+                    charges: 0,
+                    fromBankName: BankNameEnum.Technovert,
                 }
             ],
             status: AccountStatusEnum.Open
@@ -124,7 +129,8 @@ const technovertBank: IBank = {
                     status: TransactionStatusEnum.Success,
                     datetime: "Mon Feb 17 2021 12:52:40 GMT+0530 (India Standard Time)",
                     toBankName: BankNameEnum.Technovert,
-                    charges: 0
+                    charges: 0,
+                    fromBankName: BankNameEnum.Technovert,
                 },
                 {
                     id: "TXN-Tec-20-2-2021-1613825167894-Abh-20-2-2021-1613825167894-20-2-2021-1613825345743",
@@ -134,7 +140,8 @@ const technovertBank: IBank = {
                     status: TransactionStatusEnum.Success,
                     datetime: "Mon Feb 18 2021 11:52:40 GMT+0530 (India Standard Time)",
                     toBankName: BankNameEnum.Technovert,
-                    charges: 0
+                    charges: 0,
+                    fromBankName: BankNameEnum.Technovert,
                 },
                 {
                     id: `TXN-Tec-20-2-2021-1613825167894-${technovertClientId2}-20-2-2021-1613825888894`,
@@ -144,7 +151,8 @@ const technovertBank: IBank = {
                     status: TransactionStatusEnum.Success,
                     datetime: "Mon Feb 17 2021 11:52:40 GMT+0530 (India Standard Time)",
                     toBankName: BankNameEnum.Technovert,
-                    charges: 0
+                    charges: 0,
+                    fromBankName: BankNameEnum.Technovert,
                 }
             ],
             status: AccountStatusEnum.Open
@@ -163,7 +171,8 @@ const technovertBank: IBank = {
                     status: TransactionStatusEnum.Revoked,
                     datetime: "Mon Feb 19 2021 19:52:40 GMT+0530 (India Standard Time)",
                     toBankName: BankNameEnum.Technovert,
-                    charges: 0
+                    charges: 0,
+                    fromBankName: BankNameEnum.Technovert,
                 }
             ],
             status: AccountStatusEnum.Close
@@ -229,7 +238,8 @@ const saketaBank: IBank = {
                     status: TransactionStatusEnum.Success,
                     datetime: "Mon Feb 19 2021 19:52:40 GMT+0530 (India Standard Time)",
                     toBankName: BankNameEnum.Saketa,
-                    charges: 0
+                    charges: 0,
+                    fromBankName: BankNameEnum.Saketa,
                 },
             ],
             status: AccountStatusEnum.Open
@@ -248,7 +258,8 @@ const saketaBank: IBank = {
                     status: TransactionStatusEnum.Success,
                     datetime: "Mon Feb 19 2021 19:52:40 GMT+0530 (India Standard Time)",
                     toBankName: BankNameEnum.Saketa,
-                    charges: 0
+                    charges: 0,
+                    fromBankName: BankNameEnum.Saketa,
                 },
                 {
                     id: `TXN-${saketaBankId}-${saketaClientId1}-20-2-2021-1613825888894`,
@@ -258,7 +269,8 @@ const saketaBank: IBank = {
                     status: TransactionStatusEnum.Success,
                     datetime: "Mon Feb 18 2021 19:52:40 GMT+0530 (India Standard Time)",
                     toBankName: BankNameEnum.Saketa,
-                    charges: 0
+                    charges: 0,
+                    fromBankName: BankNameEnum.Saketa,
                 },
             ],
             status: AccountStatusEnum.Open
@@ -321,7 +333,8 @@ const kekaBank: IBank = {
                     status: TransactionStatusEnum.Success,
                     datetime: "Mon Feb 21 2021 19:52:40 GMT+0530 (India Standard Time)",
                     toBankName: BankNameEnum.Keka,
-                    charges: 0
+                    charges: 0,
+                    fromBankName: BankNameEnum.Keka,
                 },
             ],
             status: AccountStatusEnum.Open
