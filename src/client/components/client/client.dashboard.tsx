@@ -514,7 +514,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
                 <PrimaryButton className="client-dashboard--modal-btn" text="Withdraw" onClick={withdrawAmountProcess} disabled={isAmountValid} />
                 <DefaultButton className="client-dashboard--modal-cancel" text="Cancel" onClick={() => {
                     amountInvalid()
-                    dismissDepositModal()
+                    dismissWithdrawModal()
                 }} />
             </Modal>
 
