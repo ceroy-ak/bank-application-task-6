@@ -154,16 +154,16 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
                         </Separator>
                     </div>
                     <div className="ms-Grid-row">
-                        {(bankDB.client.length === 0) ? <p>No Account Holders to Show</p> : <></>}
+                        {(bankDB.client.length === 0) ? <Separator alignContent="center"><p className="staff-dashboard--no-show">No Account Holders to Show</p></Separator> : <></>}
                         <h1 className="staff-dashboard--account-type">Active Accounts</h1>
-                        {(activeAccounts.length === 0) ? <p>No Active Account Holders</p> : <></>}
+                        {(activeAccounts.length === 0) ? <Separator alignContent="center"><p className="staff-dashboard--no-show">No Active Account Holders</p> </Separator> : <></>}
                         {
                             activeAccounts.map((client) => <ClientAccount bankName={bankDB.enum} key={`xxx-${client.id}`} updateAccount={updateClient} client={client} revokeTransaction={revokeTransaction} deleteAccount={deleteClient} />)
                         }
                     </div>
                     <div className="ms-Grid-row">
                         <h1 className="staff-dashboard--account-type">Closed Accounts</h1>
-                        {(activeAccounts.length === 0) ? <p>No Closed Account Holders</p> : <></>}
+                        {(closedAccounts.length === 0) ? <Separator alignContent="center"><p className="staff-dashboard--no-show">No Closed Account Holders</p> </Separator> : <></>}
                         {
                             closedAccounts.map((client) => <ClientAccount bankName={bankDB.enum} key={`xxx-${client.id}`} updateAccount={updateClient} client={client} revokeTransaction={revokeTransaction} deleteAccount={deleteClient} />)
                         }

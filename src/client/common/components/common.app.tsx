@@ -11,6 +11,7 @@ import IBank from '../interfaces/bank.interface'
 import BankNameEnum from '../interfaces/bank.name.enum'
 import ITransaction from '../interfaces/client.transaction.interface'
 import TransactionStatus from '../interfaces/transaction.status.enum'
+import AccountStatusEnum from '../interfaces/acount.status.enum'
 
 function App() {
 
@@ -94,21 +95,21 @@ function App() {
     let tempMultiBank = { ...multiBank }
     if (transaction.toBankName === BankNameEnum.Saketa) {
       tempMultiBank.saketa.client.forEach((client) => {
-        if (client.id === transaction.toAccountId) {
+        if (client.id === transaction.toAccountId && client.status === AccountStatusEnum.Open) {
           client.transactions.unshift(transaction)
           validToAccount = true
         }
       })
     } else if (transaction.toBankName === BankNameEnum.Keka) {
       tempMultiBank.keka.client.forEach((client) => {
-        if (client.id === transaction.toAccountId) {
+        if (client.id === transaction.toAccountId && client.status === AccountStatusEnum.Open) {
           client.transactions.unshift(transaction)
           validToAccount = true
         }
       })
     } else if (transaction.toBankName === BankNameEnum.Technovert) {
       tempMultiBank.technovert.client.forEach((client) => {
-        if (client.id === transaction.toAccountId) {
+        if (client.id === transaction.toAccountId && client.status === AccountStatusEnum.Open) {
           client.transactions.unshift(transaction)
           validToAccount = true
         }

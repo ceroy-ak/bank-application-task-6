@@ -133,3 +133,69 @@
     }
   }
 }
+
+.staff-dashboard--no-show {
+  text-align: center;
+}
+
+.staff-dashboard--bank-charge {
+  margin: 10px 50px;
+  text-align: center;
+  &-title {
+    h1 {
+      font-weight: 500;
+    }
+  }
+  &-same {
+  }
+  &-other {
+  }
+
+  &-btn {
+    button {
+      margin: 40px 0px;
+    }
+  }
+}
+
+.staff-dashboard__form--charges {
+  padding: 20px;
+  label {
+    margin-top: 20px;
+  }
+  button {
+    margin: 30px 10px 10px 10px;
+    padding: 5px 30px;
+  }
+}
+
+.staff-dashboard__modal--currency {
+  padding: 20px;
+  label {
+    margin-top: 20px;
+  }
+  button {
+    margin: 30px 10px 10px 10px;
+    padding: 5px 30px;
+  }
+}
+
+.staff-dashboard--currency {
+  &-title {
+    font-weight: 500;
+    font-size: 25px;
+    padding-left: 20px;
+  }
+  &-btn {
+    button {
+      margin: 10px 20px;
+      font-size: 13px;
+      background-color: white;
+      color: #2b88d8;
+    }
+    button:hover {
+      background-color: #2b88d8;
+      color: white;
+    }
+  }
+}

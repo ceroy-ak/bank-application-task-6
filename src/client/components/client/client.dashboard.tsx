@@ -15,6 +15,7 @@ import TransactionStatusEnum from '../../common/interfaces/transaction.status.en
 import { createTransactionId } from '../../common/services/bank.id.creation'
 import BankNameEnum from '../../common/interfaces/bank.name.enum'
 import { v4 as uuidV4 } from 'uuid'
+import AccountStatusEnum from '../../common/interfaces/acount.status.enum'
 
 
 interface IClientDashBoard extends IDashboard {
@@ -213,7 +214,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
                 if (tempTransaction.toBankName === bankDB.enum) {
                     let flagAccountValid = false
                     bankDB.client.forEach((client) => {
-                        if (client.id === tempTransaction.toAccountId) {
+                        if (client.id === tempTransaction.toAccountId && client.status === AccountStatusEnum.Open) {
                             client.transactions.unshift(tempTransaction)
                             flagAccountValid = true
                         }
