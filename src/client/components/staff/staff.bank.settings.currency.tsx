@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import IBank from '../../common/interfaces/bank.interface'
-import { DetailsList, IColumn, SelectionMode, Modal, PrimaryButton, TextField, DefaultButton, ISelection, Selection, MarqueeSelection } from '@fluentui/react'
+import { DetailsList, IColumn, SelectionMode, Modal, PrimaryButton, TextField, DefaultButton, IObjectWithKey, Selection, MarqueeSelection, ISelection } from '@fluentui/react'
 import { v4 as uuid } from 'uuid'
 import { useBoolean } from '@uifabric/react-hooks'
 import ICurrency from '../../common/interfaces/bank.currency'
@@ -14,9 +14,10 @@ function BankSettingsCurrency({ bankDB, setBankDB }: IBankSettingsCurrency) {
     const [currencySymbol, setCurrencySymbol] = useState('')
     const [oldCurrencySymbol, setOldCurrencySymbol] = useState('')
     const [rate, setRate] = useState(0)
+
     const [isOpen, { setTrue: openModal, setFalse: closeModal }] = useBoolean(false)
 
-    const [isBtn, { setTrue: enableBtn, setFalse: disableBtn }] = useBoolean(true)
+    const [isBtn, { setTrue: disableBtn, setFalse: enableBtn }] = useBoolean(true)
 
 
     const items = bankDB.currency.filter((c) => c.currency !== 'INR')
@@ -51,38 +52,20 @@ function BankSettingsCurrency({ bankDB, setBankDB }: IBankSettingsCurrency) {
             setBankDB(tempBank)
         }
         else updateCurrency()
+        disableBtn()
     }
 
-    const _selection = new Selection({
-        onSelectionChanged: () => {
 
-            //FIXME:Gets re-redered, The button disability is working on opposite values as intended
-            _newSelection()
-        },
-    });
 
-    const _newSelection = () => {
 
-        if (_selection.getSelectedCount() > 0) {
-            enableBtn()
-            let temp = _selection.getSelection()[0] as ICurrency
-
-            if (temp === undefined) {
-                window.alert('Its undefined')
-            } else {
-                setCurrencySymbol(temp.currency)
-                setRate(temp.exchangeRate)
-                setOldCurrencySymbol(temp.currency)
-            }
-        } else {
-            disableBtn()
-        }
-    }
 
     function deleteCurrency() {
-        let tempBank = { ...bankDB }
-        tempBank.currency = tempBank.currency.filter((c) => c.currency !== currencySymbol)
-        setBankDB(tempBank)
+        if (window.confirm('Are you sure you want to delete the currency?')) {
+            let tempBank = { ...bankDB }
+            tempBank.currency = tempBank.currency.filter((c) => c.currency !== currencySymbol)
+            setBankDB(tempBank)
+        }
+        disableBtn()
     }
 
     function updateCurrency() {
@@ -100,6 +83,7 @@ function BankSettingsCurrency({ bankDB, setBankDB }: IBankSettingsCurrency) {
         })
         setOldCurrencySymbol('')
         setBankDB(tempBank)
+        disableBtn()
     }
 
 
@@ -119,9 +103,13 @@ function BankSettingsCurrency({ bankDB, setBankDB }: IBankSettingsCurrency) {
             </div>
             <div className="ms-Grid-row">
                 <div className="ms-Grid-col ms-md6">
-                    <MarqueeSelection selection={_selection}>
-                        <DetailsList items={items} columns={column} selectionMode={SelectionMode.single} selection={_selection} selectionPreservedOnEmptyClick={true} />
-                    </MarqueeSelection>
+                    <DetailsList items={items} columns={column} selectionMode={SelectionMode.single} onActiveItemChanged={(item: ICurrency, index, ev) => {
+                        enableBtn()
+                        setCurrencySymbol(item.currency)
+                        setOldCurrencySymbol(item.currency)
+                        setRate(item.exchangeRate)
+                    }}
+                        selectionPreservedOnEmptyClick={true} />
                 </div>
             </div>
 
