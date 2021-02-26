@@ -19,7 +19,7 @@ function BankSettings({ bankDB, setBankDB }: IBankSettings) {
     const [sameImps, setSameImps] = useState(bankDB.imps.same.toFixed(2))
     const [otherImps, setOtherImps] = useState(bankDB.imps.other.toFixed(2))
 
-
+    //Handle submits for change in the RTGS and IMPS values
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         closeModal()

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import initialLogin from '../services/login.initialState'
 import { BrowserRouter, Route, Switch } from 'react-router-dom'
 import HomePage from './common.home'
@@ -15,11 +15,15 @@ import AccountStatusEnum from '../interfaces/acount.status.enum'
 
 function App() {
 
+  //Initialization of the Icons inside useEffect to ensure that it is called only Once
   useEffect(() => {
     initializeIcons()
   }, [])
+
+  //State of out multibank Structure
   const [multiBank, setMultiBank] = useState(initMultiBank)
 
+  //Default Bank in case no bank is to be selected, defined by BankNameEnum.None
   const defaultBank: IBank = {
     client: [],
     enum: BankNameEnum.None,
@@ -37,9 +41,14 @@ function App() {
       same: 0
     }
   }
+
+  //State of the current bank or the selected that would be passed throughout the application
   const [bankDB, setBankDB] = useState<IBank>(defaultBank)
+
+  //State to hold the info of the login session
   const [loginSession, setLoginSession] = useState(initialLogin)
 
+  //Function that takes the Enum as parameter and sets the current bank as per request
   function chooseBank(bankName: BankNameEnum) {
     let temp = { ...multiBank }
     if (bankName === BankNameEnum.Technovert) {
@@ -53,6 +62,7 @@ function App() {
     }
   }
 
+  //Function Passed to the Staff Dashboard to Revoke Transaction if the transaction is cross bank
   function revokeTransactionFromAccount(transaction: ITransaction) {
     let tempMultiBank = { ...multiBank }
     if (transaction.fromBankName === BankNameEnum.Technovert) {
@@ -91,6 +101,8 @@ function App() {
 
     setMultiBank(tempMultiBank)
   }
+
+  //Function passed as prop to Client dashboard to facilitate cross bank transaction
   function otherBankTransaction(transaction: ITransaction) {
 
     let validToAccount: Boolean = false
@@ -134,6 +146,8 @@ function App() {
     }
   }
 
+
+  //useEffect hook ensures that if the 
   useEffect(() => {
     let temp = { ...multiBank }
     if (bankDB?.enum === BankNameEnum.Technovert) {
@@ -146,6 +160,7 @@ function App() {
     setMultiBank(temp)
   }, [bankDB])
 
+  //All the routing
   return (
     <BrowserRouter>
       <Switch>

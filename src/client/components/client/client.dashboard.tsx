@@ -69,6 +69,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
     let transactions = clientAccount.transactions
     let balance = 0
 
+    //Calculating the balance of the account holder
     if (transactions.length > 0) {
 
         balance = Object.values(transactions.map((val) => (val.status === TransactionStatus.Success) ? val.amount : 0)).reduce((a, b) => a + b)
@@ -85,7 +86,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
     }
 
 
-
+    //Set the state of the transact amount
     const transactAmountSet = (amount: string) => {
         let newTransactAmount: ITransactAmount = {
             ...transactAmount,
@@ -94,6 +95,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
         setTransactAmount(newTransactAmount)
     }
 
+    //Set the state of the ID of the receiver
     const transactPayeeIdSet = (toAccountId: string) => {
         let newTransactAmount: ITransactAmount = {
             ...transactAmount,
@@ -102,6 +104,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
         setTransactAmount(newTransactAmount)
     }
 
+    //Deposit the amount 
     function depositAmountProcess() {
         dismissDepositModal()
         amountInvalid()
@@ -144,6 +147,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
         }
     }
 
+    //Withdraw the amount
     function withdrawAmountProcess() {
         dismissWithdrawModal()
         amountInvalid()
@@ -176,6 +180,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
         setBankDB(bankDB)
     }
 
+    //Transact the amount intra or inter bank
     function transactAmountProcess() {
         dismissTransactModal()
         try {

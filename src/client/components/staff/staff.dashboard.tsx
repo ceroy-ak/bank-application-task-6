@@ -25,6 +25,8 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
 
     const staff = bankDB.staff.filter((staff) => staff.username === loginSession.currentId)[0]
 
+
+    //To facilitate Logout functionality
     const history = useHistory()
     function logOut() {
         let newLoginSession = loginSession
@@ -36,6 +38,8 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
         history.push('/')
     }
 
+
+    //Delete an account Holder(client)
     function deleteClient(client: IAccountHolder) {
 
         if (window.confirm('Are you sure you want to delete this Account?')) {
@@ -55,6 +59,8 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
 
+
+    //Add a new Account Holder(client)
     function addClient(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         dismissAddClient()
@@ -72,7 +78,7 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
         setBankDB(newBankDB)
     }
 
-
+    //Update a account holder(Client)
     function updateClient(client: IAccountHolder) {
         let newBankDB = { ...bankDB }
         newBankDB.client.forEach((value) => {
@@ -85,6 +91,7 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
         setBankDB(newBankDB)
     }
 
+    //Revoke a transaction if from same bank
     function revokeTransaction(transaction: ITransaction) {
         if (transaction.toBankName === transaction.fromBankName) {
             let newBankDB = { ...bankDB }
