@@ -15,7 +15,9 @@ import AccountStatusEnum from '../interfaces/acount.status.enum'
 
 function App() {
 
-  initializeIcons()
+  useEffect(() => {
+    initializeIcons()
+  }, [])
   const [multiBank, setMultiBank] = useState(initMultiBank)
 
   const defaultBank: IBank = {

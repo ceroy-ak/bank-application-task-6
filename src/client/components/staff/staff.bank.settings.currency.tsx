@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import IBank from '../../common/interfaces/bank.interface'
-import { DetailsList, IColumn, SelectionMode, Modal, PrimaryButton, TextField, DefaultButton, IObjectWithKey, Selection, MarqueeSelection, ISelection } from '@fluentui/react'
-import { v4 as uuid } from 'uuid'
+import { DetailsList, IColumn, SelectionMode, Modal, PrimaryButton, TextField, DefaultButton, Selection } from '@fluentui/react'
 import { useBoolean } from '@uifabric/react-hooks'
 import ICurrency from '../../common/interfaces/bank.currency'
 
@@ -19,8 +18,6 @@ function BankSettingsCurrency({ bankDB, setBankDB }: IBankSettingsCurrency) {
 
     const [isBtn, { setTrue: disableBtn, setFalse: enableBtn }] = useBoolean(true)
 
-
-    const items = bankDB.currency.filter((c) => c.currency !== 'INR')
     const column: IColumn[] = [
         {
             key: "currency",
@@ -65,6 +62,8 @@ function BankSettingsCurrency({ bankDB, setBankDB }: IBankSettingsCurrency) {
             tempBank.currency = tempBank.currency.filter((c) => c.currency !== currencySymbol)
             setBankDB(tempBank)
         }
+        setCurrencySymbol('')
+        setRate(0)
         disableBtn()
     }
 
@@ -82,10 +81,26 @@ function BankSettingsCurrency({ bankDB, setBankDB }: IBankSettingsCurrency) {
             }
         })
         setOldCurrencySymbol('')
+        setCurrencySymbol('')
+        setRate(0)
         setBankDB(tempBank)
         disableBtn()
     }
 
+    const [items, setItems] = useState(bankDB.currency.filter((c) => c.currency !== 'INR'))
+    const selection = new Selection({
+        onSelectionChanged: () => {
+            if (selection.getSelectedCount() > 0) {
+                enableBtn()
+            } else {
+                disableBtn()
+            }
+        }
+    })
+
+    useEffect(() => {
+        setItems(bankDB.currency.filter((c) => c.currency !== 'INR'))
+    }, [bankDB])
 
     return (
         <div className="ms-Grid-col ms-md12">
@@ -103,13 +118,13 @@ function BankSettingsCurrency({ bankDB, setBankDB }: IBankSettingsCurrency) {
             </div>
             <div className="ms-Grid-row">
                 <div className="ms-Grid-col ms-md6">
-                    <DetailsList items={items} columns={column} selectionMode={SelectionMode.single} onActiveItemChanged={(item: ICurrency, index, ev) => {
-                        enableBtn()
+                    <DetailsList items={items} columns={column} selection={selection} selectionMode={SelectionMode.single} onActiveItemChanged={(item: ICurrency, index, ev) => {
+                        // enableBtn()
                         setCurrencySymbol(item.currency)
                         setOldCurrencySymbol(item.currency)
                         setRate(item.exchangeRate)
                     }}
-                        selectionPreservedOnEmptyClick={true} />
+                        selectionPreservedOnEmptyClick={false} />
                 </div>
             </div>
 
