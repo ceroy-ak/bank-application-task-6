@@ -40,16 +40,33 @@ function BankSettingsCurrency({ bankDB, setBankDB }: IBankSettingsCurrency) {
         closeModal()
 
         if (oldCurrencySymbol === '') {
-            let tempBank = { ...bankDB }
-            let tempCurrency: ICurrency = {
-                currency: currencySymbol,
-                exchangeRate: rate
+            let isAddValid = true
+
+            bankDB.currency.forEach((value) => {
+                if (value.currency === currencySymbol) {
+                    isAddValid = false
+                }
+            })
+            if (isAddValid) {
+                let tempBank = { ...bankDB }
+                let newRate = (Math.abs(rate) === 0) ? 1 : Math.abs(rate)
+                let tempCurrency: ICurrency = {
+                    currency: currencySymbol,
+                    exchangeRate: newRate
+                }
+                tempBank.currency.unshift(tempCurrency)
+                setBankDB(tempBank)
+            } else {
+                window.alert('The Currency already exists')
             }
-            tempBank.currency.push(tempCurrency)
-            setBankDB(tempBank)
+            disableBtn()
+            setOldCurrencySymbol('')
+            setCurrencySymbol('')
+            setRate(0)
         }
         else updateCurrency()
-        disableBtn()
+
+
     }
 
 
@@ -68,23 +85,37 @@ function BankSettingsCurrency({ bankDB, setBankDB }: IBankSettingsCurrency) {
     }
 
     function updateCurrency() {
-        let tempBank = { ...bankDB }
-        let oldCurrency = oldCurrencySymbol
-        let tempCurrency: ICurrency = {
-            currency: currencySymbol,
-            exchangeRate: rate
-        }
-        tempBank.currency.forEach((currency) => {
-            if (currency.currency === oldCurrency) {
-                currency.currency = tempCurrency.currency
-                currency.exchangeRate = tempCurrency.exchangeRate
+        let isUpdateValid = true
+
+        bankDB.currency.forEach((value) => {
+            if (value.currency === currencySymbol && currencySymbol !== oldCurrencySymbol) {
+                isUpdateValid = false
             }
         })
-        setOldCurrencySymbol('')
-        setCurrencySymbol('')
-        setRate(0)
-        setBankDB(tempBank)
-        disableBtn()
+        if (isUpdateValid) {
+            let tempBank = { ...bankDB }
+            let oldCurrency = oldCurrencySymbol
+            let tempCurrency: ICurrency = {
+                currency: currencySymbol,
+                exchangeRate: rate
+            }
+            tempBank.currency.forEach((currency) => {
+                if (currency.currency === oldCurrency) {
+                    currency.currency = tempCurrency.currency
+                    currency.exchangeRate = tempCurrency.exchangeRate
+                }
+            })
+
+            setBankDB(tempBank)
+            disableBtn()
+            setOldCurrencySymbol('')
+            setCurrencySymbol('')
+            setRate(0)
+        }
+        else {
+            enableBtn()
+            window.alert('Update failed because the Currency name is already in use')
+        }
     }
 
     const [items, setItems] = useState(bankDB.currency.filter((c) => c.currency !== 'INR'))
@@ -102,6 +133,8 @@ function BankSettingsCurrency({ bankDB, setBankDB }: IBankSettingsCurrency) {
         setItems(bankDB.currency.filter((c) => c.currency !== 'INR'))
     }, [bankDB])
 
+    const [isCurrencyModalBtn, { setTrue: disableCurrencyModalBtn, setFalse: enableCurrencyModalBtn }] = useBoolean(true)
+
     return (
         <div className="ms-Grid-col ms-md12">
             <div className="ms-Grid-row">
@@ -109,7 +142,12 @@ function BankSettingsCurrency({ bankDB, setBankDB }: IBankSettingsCurrency) {
                     <h1 className="staff-dashboard--currency-title">Currency List - {bankDB.name}</h1>
                 </div>
                 <div className="ms-Grid-row staff-dashboard--currency-btn">
-                    <PrimaryButton text="Add Currency" onClick={openModal} iconProps={{ iconName: 'Add' }} />
+                    <PrimaryButton text="Add Currency" onClick={() => {
+                        setOldCurrencySymbol('')
+                        setCurrencySymbol('')
+                        setRate(0)
+                        openModal()
+                    }} iconProps={{ iconName: 'Add' }} />
                     <PrimaryButton text="Edit Currency" onClick={openModal} iconProps={{ iconName: 'Edit' }} disabled={isBtn} />
                     <PrimaryButton text="Delete Currency" onClick={deleteCurrency} iconProps={{ iconName: 'Delete' }} disabled={isBtn} />
                 </div>
@@ -119,7 +157,6 @@ function BankSettingsCurrency({ bankDB, setBankDB }: IBankSettingsCurrency) {
             <div className="ms-Grid-row">
                 <div className="ms-Grid-col ms-md6">
                     <DetailsList items={items} columns={column} selection={selection} selectionMode={SelectionMode.single} onActiveItemChanged={(item: ICurrency, index, ev) => {
-                        // enableBtn()
                         setCurrencySymbol(item.currency)
                         setOldCurrencySymbol(item.currency)
                         setRate(item.exchangeRate)
@@ -130,9 +167,21 @@ function BankSettingsCurrency({ bankDB, setBankDB }: IBankSettingsCurrency) {
 
             <Modal isOpen={isOpen}>
                 <form onSubmit={(e) => handleSubmit(e)} className="staff-dashboard__modal--currency">
-                    <TextField label="Currency Symbol" value={currencySymbol} onChange={(e, value) => setCurrencySymbol(value!)} required />
+                    <TextField label="Currency Symbol" value={currencySymbol} onChange={(e, value) => setCurrencySymbol(value!)} required
+                        onGetErrorMessage={(value) => {
+                            let regEx = /^[A-Z]{3}$/gm
+                            if (!regEx.test(value) && value.length !== 0) {
+                                disableCurrencyModalBtn()
+                                return 'Can only be 3 characters and Capital'
+                            } else {
+                                if (value.length !== 0) enableCurrencyModalBtn()
+                                else disableCurrencyModalBtn()
+                                return ''
+                            }
+                        }}
+                    />
                     <TextField label="Exchange Rate" value={rate.toString()} onChange={(e, value) => setRate(Number.parseFloat(value!))} type="number" required />
-                    <PrimaryButton text="Submit" type="submit" />
+                    <PrimaryButton text="Submit" type="submit" disabled={isCurrencyModalBtn} />
                     <DefaultButton text="Cancel" onClick={closeModal} />
                 </form>
             </Modal>

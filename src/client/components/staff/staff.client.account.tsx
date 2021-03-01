@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import IAccountHolder from '../../common/interfaces/client.account.interface'
 import AccountStatusEnum from '../../common/interfaces/acount.status.enum'
 import { PrimaryButton, Panel, TextField, DefaultButton, PanelType, Separator } from '@fluentui/react'
@@ -6,7 +6,7 @@ import { useBoolean } from '@uifabric/react-hooks'
 import ClientTransactionStaff from './staff.client.transaction'
 import TransactionStatusEnum from '../../common/interfaces/transaction.status.enum'
 import BankNameEnum from '../../common/interfaces/bank.name.enum'
-
+import { nameRegex, passwordRegex, usernameRegex } from '../../common/services/client.validation.regex'
 
 interface IClientAccountStaff {
     client: IAccountHolder,
@@ -17,7 +17,7 @@ interface IClientAccountStaff {
 }
 function ClientAccount({ client, deleteAccount, updateAccount, revokeTransaction, bankName }: IClientAccountStaff) {
 
-    const [isAddClient, { setTrue: openAddClient, setFalse: dismissAddClient }] = useBoolean(false)
+    const [isUpdateClient, { setTrue: openUpdateClient, setFalse: dismissUpdateClient }] = useBoolean(false)
     const [isViewAccount, { setTrue: openViewAccount, setFalse: dismissViewAccount }] = useBoolean(false)
 
     const [name, setName] = useState(client.name)
@@ -26,7 +26,7 @@ function ClientAccount({ client, deleteAccount, updateAccount, revokeTransaction
 
     function updateAccountProxy(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
-        dismissAddClient()
+        dismissUpdateClient()
         let tempClient: IAccountHolder = {
             id: client.id,
             name: name,
@@ -39,6 +39,18 @@ function ClientAccount({ client, deleteAccount, updateAccount, revokeTransaction
         updateAccount(tempClient)
     }
     let balance = Object.values(client.transactions.map((val) => (val.status === TransactionStatusEnum.Success) ? val.amount : 0).concat([0])).reduce((a?, b?) => a + b) ?? 0
+    const [isUpdateValidBtn, { setTrue: disableUpdateBtn, setFalse: enableUpdateBtn }] = useBoolean(true)
+
+    useEffect(() => {
+
+        if (nameRegex.test(name) && usernameRegex.test(username) && passwordRegex.test(password)) {
+            enableUpdateBtn()
+        } else {
+            disableUpdateBtn()
+        }
+
+    }, [name, username, password])
+
     return (
         <div className="ms-Grid-col ms-xl6 ms-sm12">
             <div className={`${(client.status === AccountStatusEnum.Open) ? 'staff-dashboard__client--account' : 'staff-dashboard__client--account-closed'}`}>
@@ -54,7 +66,7 @@ function ClientAccount({ client, deleteAccount, updateAccount, revokeTransaction
                     {
                         (client.status === AccountStatusEnum.Open) ?
                             <>
-                                <PrimaryButton iconProps={{ iconName: "Refresh" }} text="Update Account" onClick={openAddClient} />
+                                <PrimaryButton iconProps={{ iconName: "Refresh" }} text="Update Account" onClick={openUpdateClient} />
                                 <PrimaryButton iconProps={{ iconName: "Delete" }} text="Delete Account" onClick={() => deleteAccount(client)} />
                             </>
                             : <></>
@@ -62,20 +74,45 @@ function ClientAccount({ client, deleteAccount, updateAccount, revokeTransaction
                 </div>
             </div>
 
-            <Panel isOpen={isAddClient} hasCloseButton={false} headerText="Update Client" >
+            <Panel isOpen={isUpdateClient} hasCloseButton={false} headerText="Update Client" >
                 <form onSubmit={(e) => updateAccountProxy(e)}>
-
-                    <TextField className="staff-dashboard--add-client__name" name="name" value={name} label="Name" onChange={(e, value) => setName(value!)} />
-                    <TextField className="staff-dashboard--add-client__username" name="username" value={username} label="Username" onChange={(e, value) => setUsername(value!)} />
-                    <TextField className="staff-dashboard--add-client__password" name="password" value={password} label="Password" onChange={(e, value) => setPassword(value!)} />
-                    <PrimaryButton text="Update" type="submit" className="staff-dashboard--add-client__add" />
-                    <DefaultButton text="Cancel" onClick={dismissAddClient} className="staff-dashboard--add-client__cancel" />
+                    <TextField
+                        onGetErrorMessage={(value) => {
+                            if (!nameRegex.test(value) && value.length !== 0) {
+                                return 'Name can only contain Alphabets'
+                            } else {
+                                return ''
+                            }
+                        }}
+                        required className="staff-dashboard--add-client__name" name="name" value={name} label="Name" onChange={(e, value) => setName(value!)} />
+                    <TextField
+                        onGetErrorMessage={(value) => {
+                            //username Regex
+                            if (!usernameRegex.test(value) && value.length !== 0) {
+                                return 'No Special characters or uppercase allowed, minimum 6 characters'
+                            } else {
+                                return ''
+                            }
+                        }}
+                        required className="staff-dashboard--add-client__username" name="username" value={username} label="Username" onChange={(e, value) => setUsername(value!)} />
+                    <TextField
+                        onGetErrorMessage={(value) => {
+                            //password Regex
+                            if (!passwordRegex.test(value) && value.length !== 0) {
+                                return 'Password must be alphanumeric, contain atleast one @ # $ % ^ & * ( ) ! and one lower and uppercase letters, minimum 8 characters'
+                            } else {
+                                return ''
+                            }
+                        }}
+                        required className="staff-dashboard--add-client__password" name="password" value={password} label="Password" onChange={(e, value) => setPassword(value!)} />
+                    <PrimaryButton text="Update" type="submit" className="staff-dashboard--add-client__add" disabled={isUpdateValidBtn} />
+                    <DefaultButton text="Cancel" onClick={dismissUpdateClient} className="staff-dashboard--add-client__cancel" />
                 </form>
             </Panel>
 
             <Panel isOpen={isViewAccount} className="ms-Grid" onDismiss={dismissViewAccount} headerText={client.name} type={PanelType.custom} customWidth='500px'>
                 <hr />
-                {
+                {(client.transactions.length === 0) ? <p>No Transactions Available</p> :
                     client.transactions.map((value) => {
                         return <ClientTransactionStaff transaction={value} key={value.id} revokeTransaction={revokeTransaction} currBankName={bankName} />
                     })

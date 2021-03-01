@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import IDashboard from '../../common/interfaces/bank.dashboard.interface'
 import {
     PrimaryButton, Panel, TextField, DefaultButton, Pivot, PivotItem,
@@ -15,7 +15,7 @@ import ITransaction from '../../common/interfaces/client.transaction.interface'
 import TransactionStatus from '../../common/interfaces/transaction.status.enum'
 import BankSettings from './staff.bank.settings'
 import BankNameEnum from '../../common/interfaces/bank.name.enum'
-
+import { nameRegex, passwordRegex, usernameRegex } from '../../common/services/client.validation.regex'
 
 interface IStaffDashboard extends IDashboard {
     chooseBank: Function,
@@ -73,9 +73,31 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
             username: username
         }
 
-        let newBankDB = { ...bankDB }
-        newBankDB.client.unshift(tempClient)
-        setBankDB(newBankDB)
+        let allowedAddClientFlag = true
+        let ifDuplicateThenType = ''
+
+        bankDB.client.forEach((client) => {
+            if (client.id === tempClient.id) {
+                ifDuplicateThenType = ifDuplicateThenType + 'ID'
+                allowedAddClientFlag = false
+            }
+            if (client.username === tempClient.username) {
+                allowedAddClientFlag = false
+                if (ifDuplicateThenType.length > 0) {
+                    ifDuplicateThenType = ifDuplicateThenType + ' & Username'
+                } else {
+                    ifDuplicateThenType = ifDuplicateThenType + 'Username'
+                }
+            }
+        })
+
+        if (allowedAddClientFlag) {
+            let newBankDB = { ...bankDB }
+            newBankDB.client.unshift(tempClient)
+            setBankDB(newBankDB)
+        } else {
+            window.alert(`${ifDuplicateThenType} already exists`)
+        }
     }
 
     //Update a account holder(Client)
@@ -135,6 +157,18 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
     const activeAccounts = bankDB.client.filter((client) => (client.status === AccountStatusEnum.Open))
     const closedAccounts = bankDB.client.filter((client) => (client.status === AccountStatusEnum.Close))
 
+    const [isAddValidBtn, { setTrue: disableAddBtn, setFalse: enableAddBtn }] = useBoolean(true)
+
+    useEffect(() => {
+
+        if (nameRegex.test(name) && usernameRegex.test(username) && passwordRegex.test(password)) {
+            enableAddBtn()
+        } else {
+            disableAddBtn()
+        }
+
+    }, [name, username, password])
+
     return (
         <div className="ms-Grid" dir="ltr">
             <div className="ms-Grid-row staff-dashboard__title-row">
@@ -183,10 +217,36 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
 
             <Panel isOpen={isAddClient} hasCloseButton={false} headerText="Add Client" >
                 <form onSubmit={addClient}>
-                    <TextField name="name" className="staff-dashboard--add-client__name" label="Name" onChange={(e, value) => setName(value!)} />
-                    <TextField name="username" className="staff-dashboard--add-client__username" label="Username" onChange={(e, value) => setUsername(value!)} />
-                    <TextField name="password" className="staff-dashboard--add-client__password" label="Password" onChange={(e, value) => setPassword(value!)} />
-                    <PrimaryButton text="Add" type="submit" className="staff-dashboard--add-client__add" />
+                    <TextField required
+                        onGetErrorMessage={(value) => {
+                            if (!nameRegex.test(value) && value.length !== 0) {
+                                return 'Name can only contain Alphabets'
+                            } else {
+                                return ''
+                            }
+                        }}
+                        name="name" className="staff-dashboard--add-client__name" label="Name" onChange={(e, value) => setName(value!)} />
+                    <TextField required
+                        onGetErrorMessage={(value) => {
+                            //username Regex
+                            if (!usernameRegex.test(value) && value.length !== 0) {
+                                return 'No Special characters or uppercase allowed, minimum 6 characters'
+                            } else {
+                                return ''
+                            }
+                        }}
+                        name="username" className="staff-dashboard--add-client__username" label="Username" onChange={(e, value) => setUsername(value!)} />
+                    <TextField
+                        onGetErrorMessage={(value) => {
+                            //password Regex
+                            if (!passwordRegex.test(value) && value.length !== 0) {
+                                return 'Password must be alphanumeric, contain atleast one @ # $ % ^ & * ( ) ! and one lower and uppercase letters, minimum 8 characters'
+                            } else {
+                                return ''
+                            }
+                        }}
+                        required name="password" className="staff-dashboard--add-client__password" label="Password" onChange={(e, value) => setPassword(value!)} />
+                    <PrimaryButton text="Add" type="submit" className="staff-dashboard--add-client__add" disabled={isAddValidBtn} />
                     <DefaultButton text="Cancel" onClick={dismissAddClient} className="staff-dashboard--add-client__cancel" />
                 </form>
             </Panel>
