@@ -5,7 +5,8 @@ import {
     CheckboxVisibility, DetailsListLayoutMode, ConstrainMode,
     IDropdownOption,
     TooltipHost,
-    Dropdown
+    Dropdown,
+    MessageBar, MessageBarType
 } from '@fluentui/react'
 import { useHistory } from 'react-router-dom'
 import TransactionStatus from '../../common/interfaces/transaction.status.enum'
@@ -19,7 +20,7 @@ import AccountStatusEnum from '../../common/interfaces/acount.status.enum'
 
 
 interface IClientDashBoard extends IDashboard {
-    otherBankTransfer: Function,
+    otherBankTransfer: (t: ITransaction) => Boolean,
     chooseBank: Function
 }
 function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, otherBankTransfer, chooseBank }: IClientDashBoard) {
@@ -42,6 +43,11 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
     //Transaction Modal
     const [transferType, setTransferType] = useState('rtgs')
     const [transferToBank, setTransferToBank] = useState(bankDB.enum)
+
+    //For Message
+    const [isMessage, { setTrue: openMessage, setFalse: closeMessage }] = useBoolean(false)
+    const [messageBarType, setMessageBarType] = useState<MessageBarType>(MessageBarType.severeWarning)
+    const [messageText, setMessageText] = useState('')
 
     //Interface for the Transact Action
     interface ITransactAmount {
@@ -138,11 +144,16 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
                     client.transactions = transactions
                 }
             })
+            setMessageText('Deposit was successful')
+            setMessageBarType(MessageBarType.success)
+            openMessage()
             setExchangeCurrency('INR')
             setBankDB(bankDB)
         }
         catch (e) {
-            alert('Something went wrong' + e)
+            setMessageText('Something Went Wrong with Deposit')
+            setMessageBarType(MessageBarType.severeWarning)
+            openMessage()
             return
         }
     }
@@ -153,7 +164,9 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
         amountInvalid()
         const amount: number = Number.parseFloat(withdrawAmount)
         if (amount > balance) {
-            window.alert('Insufficient Balance')
+            setMessageText('Insufficient Balance')
+            setMessageBarType(MessageBarType.severeWarning)
+            openMessage()
             return
         }
 
@@ -177,6 +190,9 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
             }
         })
 
+        setMessageText('Withdraw was Successful')
+        setMessageBarType(MessageBarType.success)
+        openMessage()
         setBankDB(bankDB)
     }
 
@@ -185,7 +201,9 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
         dismissTransactModal()
         try {
             if (Number.parseFloat(transactAmount.amount) > balance) {
-                window.alert('Insufficient Fund')
+                setMessageText('Insufficient Balance')
+                setMessageBarType(MessageBarType.severeWarning)
+                openMessage()
             }
             else {
 
@@ -233,17 +251,33 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
                                 client.transactions.unshift(superTemp)
                             }
                         })
+
+                        setMessageText('Transaction was successful')
+                        setMessageBarType(MessageBarType.success)
+                        openMessage()
                         setBankDB(bankDB)
                     } else {
-                        window.alert('No Such account exists. Please check Bank and Account Id')
+                        setMessageText('No such account exists or the account is closed')
+                        setMessageBarType(MessageBarType.severeWarning)
+                        openMessage()
                     }
                 } else {
-
-                    otherBankTransfer(tempTransaction)
+                    let res = otherBankTransfer(tempTransaction)
+                    if (res) {
+                        setMessageText('Transaction was successful')
+                        setMessageBarType(MessageBarType.success)
+                        openMessage()
+                    } else {
+                        setMessageText('No such account exists or the account is closed')
+                        setMessageBarType(MessageBarType.severeWarning)
+                        openMessage()
+                    }
                 }
             }
         } catch (e) {
-            window.alert('Something Went Wrong during processing the transaction')
+            setMessageText('Something went wrong while processing the transaction')
+            setMessageBarType(MessageBarType.severeWarning)
+            openMessage()
         }
 
     }
@@ -447,6 +481,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
 
     return (
         <div className="ms-Grid" dir="ltr">
+
             <div className="ms-Grid-row client-dashboard__title-row">
                 <div className="ms-Grid-col ms-md6">
                     <h1 className="client-dashboard--title">Client Dashboard | {bankDB.name}</h1>
@@ -459,6 +494,14 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
             <div className="ms-Grid-row">
                 <h1 className="client-dashboard--client-name">Welcome, {clientAccount.name}</h1>
             </div>
+            {
+                isMessage && <MessageBar
+                    onDismiss={closeMessage}
+                    messageBarType={messageBarType}
+                >
+                    {messageText}
+                </MessageBar>
+            }
             <div className="ms-Grid-row client-dashboard--balance-title">
                 <p>Current Balance</p>
             </div>

@@ -40,6 +40,7 @@ function ClientTransactionStaff({ transaction, revokeTransaction, currBankName }
                                 text={(transaction.toBankName === currBankName) ? "Revoke" : `Contact ${(transaction.toBankName === BankNameEnum.Technovert) ? "Technovert Bank" : (transaction.toBankName === BankNameEnum.Saketa) ? "Saketa Bank" : "Keka Bank"}`}
                                 onClick={() => revokeTransaction(transaction)}
                                 disabled={(transaction.toBankName === currBankName) ? false : true}
+                                style={{ borderColor: `${(transaction.toBankName !== currBankName) ? 'transparent' : 'red'}` }}
                             /> : <></>
                     }
                 </div>

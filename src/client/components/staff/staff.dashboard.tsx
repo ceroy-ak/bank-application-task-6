@@ -3,7 +3,7 @@ import IDashboard from '../../common/interfaces/bank.dashboard.interface'
 import {
     PrimaryButton, Panel, TextField, DefaultButton, Pivot, PivotItem,
     IStyleFunctionOrObject, IPivotStyleProps, IPivotStyles, PivotLinkSize,
-    Separator
+    Separator, MessageBar, MessageBarType
 } from '@fluentui/react'
 import { useBoolean } from '@uifabric/react-hooks'
 import { useHistory } from 'react-router-dom'
@@ -38,6 +38,10 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
         history.push('/')
     }
 
+    //For Message
+    const [isMessage, { setTrue: openMessage, setFalse: closeMessage }] = useBoolean(false)
+    const [messageBarType, setMessageBarType] = useState<MessageBarType>(MessageBarType.severeWarning)
+    const [messageText, setMessageText] = useState('')
 
     //Delete an account Holder(client)
     function deleteClient(client: IAccountHolder) {
@@ -50,6 +54,9 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
                 }
             })
             setBankDB(newBankDB)
+            setMessageText('Client account was successfully closed')
+            setMessageBarType(MessageBarType.success)
+            openMessage()
         }
     }
 
@@ -95,8 +102,13 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
             let newBankDB = { ...bankDB }
             newBankDB.client.unshift(tempClient)
             setBankDB(newBankDB)
+            setMessageText('Client wass successfully added')
+            setMessageBarType(MessageBarType.success)
+            openMessage()
         } else {
-            window.alert(`${ifDuplicateThenType} already exists`)
+            setMessageText(`${ifDuplicateThenType} already exists`)
+            setMessageBarType(MessageBarType.blocked)
+            openMessage()
         }
     }
 
@@ -111,6 +123,9 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
             }
         })
         setBankDB(newBankDB)
+        setMessageText('Client details were successfully Updated')
+        setMessageBarType(MessageBarType.success)
+        openMessage()
     }
 
     //Revoke a transaction if from same bank
@@ -145,6 +160,9 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
             setBankDB(newBankDB)
             revokeTransactionFromAccount(transaction)
         }
+        setMessageText('Transaction was successfully Revoked')
+        setMessageBarType(MessageBarType.success)
+        openMessage()
     }
 
     const pivotStyles: IStyleFunctionOrObject<IPivotStyleProps, IPivotStyles> = {
@@ -184,7 +202,14 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
             <div className="ms-Grid-row">
                 <h1 className="staff-dashboard--client-name">Welcome, {staff.name}</h1>
             </div>
-
+            {
+                isMessage && <MessageBar
+                    onDismiss={closeMessage}
+                    messageBarType={messageBarType}
+                >
+                    {messageText}
+                </MessageBar>
+            }
             <Pivot styles={pivotStyles} linkSize={PivotLinkSize.large}>
                 <PivotItem headerText="Clients">
                     <div className="ms-Grid-row">

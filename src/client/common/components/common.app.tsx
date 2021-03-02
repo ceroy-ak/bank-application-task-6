@@ -20,8 +20,8 @@ function App() {
     initializeIcons()
   }, [])
 
-  //State of out multibank Structure
-  const [multiBank, setMultiBank] = useState(initMultiBank)
+  //State of out banksList Structure
+  const [banksList, setBanksList] = useState(initMultiBank)
 
   //Default Bank in case no bank is to be selected, defined by BankNameEnum.None
   const defaultBank: IBank = {
@@ -50,7 +50,7 @@ function App() {
 
   //Function that takes the Enum as parameter and sets the current bank as per request
   function chooseBank(bankName: BankNameEnum) {
-    let temp = { ...multiBank }
+    let temp = { ...banksList }
     if (bankName === BankNameEnum.Technovert) {
       setBankDB(temp.technovert)
     } else if (bankName === BankNameEnum.Saketa) {
@@ -64,7 +64,7 @@ function App() {
 
   //Function Passed to the Staff Dashboard to Revoke Transaction if the transaction is cross bank
   function revokeTransactionFromAccount(transaction: ITransaction) {
-    let tempMultiBank = { ...multiBank }
+    let tempMultiBank = { ...banksList }
     if (transaction.fromBankName === BankNameEnum.Technovert) {
       tempMultiBank.technovert.client.forEach((client) => {
         if (client.id === transaction.fromAccountId) {
@@ -99,14 +99,14 @@ function App() {
 
     }
 
-    setMultiBank(tempMultiBank)
+    setBanksList(tempMultiBank)
   }
 
   //Function passed as prop to Client dashboard to facilitate cross bank transaction
-  function otherBankTransaction(transaction: ITransaction) {
+  function otherBankTransaction(transaction: ITransaction): Boolean {
 
     let validToAccount: Boolean = false
-    let tempMultiBank = { ...multiBank }
+    let tempMultiBank = { ...banksList }
     if (transaction.toBankName === BankNameEnum.Saketa) {
       tempMultiBank.saketa.client.forEach((client) => {
         if (client.id === transaction.toAccountId && client.status === AccountStatusEnum.Open) {
@@ -139,17 +139,18 @@ function App() {
         }
       })
       setBankDB(bankDB)
-      setMultiBank(tempMultiBank)
+      setBanksList(tempMultiBank)
+      return true
     }
     else {
-      window.alert('No Such user exists. Please check the Payee account Id or Bank')
+      return false
     }
   }
 
 
   //useEffect hook ensures that if the 
   useEffect(() => {
-    let temp = { ...multiBank }
+    let temp = { ...banksList }
     if (bankDB?.enum === BankNameEnum.Technovert) {
       temp.technovert = bankDB
     } else if (bankDB?.enum === BankNameEnum.Saketa) {
@@ -157,7 +158,7 @@ function App() {
     } else if (bankDB?.enum === BankNameEnum.Keka) {
       temp.keka = bankDB
     }
-    setMultiBank(temp)
+    setBanksList(temp)
   }, [bankDB])
 
   //All the routing
