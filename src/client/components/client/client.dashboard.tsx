@@ -1,22 +1,20 @@
 import { useState } from 'react'
 import IDashboard from '../../common/interfaces/bank.dashboard.interface'
 import {
-    PrimaryButton, Modal, TextField, DefaultButton, DetailsList, IColumn,
-    CheckboxVisibility, DetailsListLayoutMode, ConstrainMode,
+    PrimaryButton, Modal, TextField, DefaultButton,
     IDropdownOption,
-    TooltipHost,
     Dropdown,
     MessageBar, MessageBarType
 } from '@fluentui/react'
 import { useHistory } from 'react-router-dom'
-import TransactionStatus from '../../common/interfaces/transaction.status.enum'
 import { useBoolean } from '@uifabric/react-hooks'
 import ITransaction from '../../common/interfaces/client.transaction.interface'
 import TransactionStatusEnum from '../../common/interfaces/transaction.status.enum'
-import { createTransactionId } from '../../common/services/bank.id.creation'
 import BankNameEnum from '../../common/interfaces/bank.name.enum'
-import { v4 as uuidV4 } from 'uuid'
-import AccountStatusEnum from '../../common/interfaces/acount.status.enum'
+import ClientTransactionDetails from './client.transaction.details'
+import ClientDepositModal from './client.deposit.modal'
+import ClientWithdrawModal from './client.withdraw.modal'
+import ClientTransferModal from './client.transfer.modal'
 
 
 interface IClientDashBoard extends IDashboard {
@@ -29,38 +27,13 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
     const history = useHistory()
     const [isWithdrawModal, { setTrue: openWithdrawModal, setFalse: dismissWithdrawModal }] = useBoolean(false)
     const [isTransactModal, { setTrue: openTransactModal, setFalse: dismissTransactModal }] = useBoolean(false)
-    const [withdrawAmount, setWithdrawAmount] = useState('')
-
-    //Common states for Modal
-    const [exchangeCurrency, setExchangeCurrency] = useState('INR')
-    const [isAmountValid, { setTrue: amountInvalid, setFalse: amountValid }] = useBoolean(true)
-
-
-    //Deposit Modal
     const [isDepositModal, { setTrue: openDepositModal, setFalse: dismissDepositModal }] = useBoolean(false)
-    const [depositAmount, setDepositAmount] = useState('0')
 
-    //Transaction Modal
-    const [transferType, setTransferType] = useState('rtgs')
-    const [transferToBank, setTransferToBank] = useState(bankDB.enum)
 
     //For Message
     const [isMessage, { setTrue: openMessage, setFalse: closeMessage }] = useBoolean(false)
     const [messageBarType, setMessageBarType] = useState<MessageBarType>(MessageBarType.severeWarning)
     const [messageText, setMessageText] = useState('')
-
-    //Interface for the Transact Action
-    interface ITransactAmount {
-        toAccountId: string,
-        amount: string,
-        toBankName: BankNameEnum
-    }
-
-    const [transactAmount, setTransactAmount] = useState<ITransactAmount>({
-        amount: '0',
-        toAccountId: loginSession.currentId!,
-        toBankName: BankNameEnum.None
-    })
 
     if (loginSession.currentId === undefined) {
         logOut()
@@ -78,7 +51,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
     //Calculating the balance of the account holder
     if (transactions.length > 0) {
 
-        balance = Object.values(transactions.map((val) => (val.status === TransactionStatus.Success) ? val.amount : 0)).reduce((a, b) => a + b)
+        balance = Object.values(transactions.map((val) => (val.status === TransactionStatusEnum.Success) ? val.amount : 0).concat([0])).reduce((a?, b?) => a + b) ?? 0
     }
 
     function logOut() {
@@ -90,393 +63,6 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
         setLoginSession(newLoginSession)
         history.push('/')
     }
-
-
-    //Set the state of the transact amount
-    const transactAmountSet = (amount: string) => {
-        let newTransactAmount: ITransactAmount = {
-            ...transactAmount,
-            amount: amount
-        }
-        setTransactAmount(newTransactAmount)
-    }
-
-    //Set the state of the ID of the receiver
-    const transactPayeeIdSet = (toAccountId: string) => {
-        let newTransactAmount: ITransactAmount = {
-            ...transactAmount,
-            toAccountId: toAccountId
-        }
-        setTransactAmount(newTransactAmount)
-    }
-
-    //Deposit the amount 
-    function depositAmountProcess() {
-        dismissDepositModal()
-        amountInvalid()
-        try {
-            let amount: number = Number.parseFloat(depositAmount)
-            const date = new Date()
-            let exchangeRate: number = 1;
-            bankDB.currency.forEach((value) => {
-                if (value.currency === exchangeCurrency && value.currency !== 'INR') {
-                    exchangeRate = value.exchangeRate
-                }
-            })
-            amount = Number.parseFloat((amount * exchangeRate).toFixed(2))
-
-
-            const tempTransaction: ITransaction = {
-                amount: amount,
-                fromAccountId: loginSession.currentId!,
-                toAccountId: loginSession.currentId!,
-                status: TransactionStatusEnum.Success,
-                id: createTransactionId(bankDB.id, loginSession.currentId!),
-                datetime: date.toString(),
-                toBankName: bankDB.enum,
-                fromBankName: bankDB.enum,
-                charges: 0
-            }
-            transactions.unshift(tempTransaction)
-
-            bankDB.client.forEach((client) => {
-                if (client.id === loginSession.currentId!) {
-                    client.transactions = transactions
-                }
-            })
-            setMessageText('Deposit was successful')
-            setMessageBarType(MessageBarType.success)
-            openMessage()
-            setExchangeCurrency('INR')
-            setBankDB(bankDB)
-        }
-        catch (e) {
-            setMessageText('Something Went Wrong with Deposit')
-            setMessageBarType(MessageBarType.severeWarning)
-            openMessage()
-            return
-        }
-    }
-
-    //Withdraw the amount
-    function withdrawAmountProcess() {
-        dismissWithdrawModal()
-        amountInvalid()
-        const amount: number = Number.parseFloat(withdrawAmount)
-        if (amount > balance) {
-            setMessageText('Insufficient Balance')
-            setMessageBarType(MessageBarType.severeWarning)
-            openMessage()
-            return
-        }
-
-        const date = new Date()
-        const tempTransaction: ITransaction = {
-            amount: amount * -1,
-            fromAccountId: loginSession.currentId!,
-            toAccountId: loginSession.currentId!,
-            status: TransactionStatusEnum.Success,
-            id: createTransactionId(bankDB.id, loginSession.currentId!),
-            datetime: date.toString(),
-            toBankName: bankDB.enum,
-            fromBankName: bankDB.enum,
-            charges: 0
-        }
-        transactions.unshift(tempTransaction)
-
-        bankDB.client.forEach((client) => {
-            if (client.id === loginSession.currentId!) {
-                client.transactions = transactions
-            }
-        })
-
-        setMessageText('Withdraw was Successful')
-        setMessageBarType(MessageBarType.success)
-        openMessage()
-        setBankDB(bankDB)
-    }
-
-    //Transact the amount intra or inter bank
-    function transactAmountProcess() {
-        dismissTransactModal()
-        try {
-            if (Number.parseFloat(transactAmount.amount) > balance) {
-                setMessageText('Insufficient Balance')
-                setMessageBarType(MessageBarType.severeWarning)
-                openMessage()
-            }
-            else {
-
-                let charge: number = 0
-                if (transferToBank === bankDB.enum) {
-                    if (transferType === 'rtgs') {
-                        charge = bankDB.rtgs.same
-                    } else {
-                        charge = bankDB.imps.same
-                    }
-                } else {
-                    if (transferType === 'rtgs') {
-                        charge = bankDB.rtgs.other
-                    } else {
-                        charge = bankDB.imps.other
-                    }
-                }
-                const date = new Date()
-                let tempTransaction: ITransaction = {
-                    amount: Number.parseFloat(transactAmount.amount),
-                    fromAccountId: loginSession.currentId!,
-                    toAccountId: transactAmount.toAccountId,
-                    id: createTransactionId(bankDB.id, loginSession.currentId!),
-                    status: TransactionStatusEnum.Success,
-                    datetime: date.toString(),
-                    toBankName: transferToBank,
-                    fromBankName: bankDB.enum,
-                    charges: charge
-                }
-
-                if (tempTransaction.toBankName === bankDB.enum) {
-                    let flagAccountValid = false
-                    bankDB.client.forEach((client) => {
-                        if (client.id === tempTransaction.toAccountId && client.status === AccountStatusEnum.Open) {
-                            client.transactions.unshift(tempTransaction)
-                            flagAccountValid = true
-                        }
-                    })
-
-                    if (flagAccountValid) {
-                        bankDB.client.forEach((client) => {
-                            if (client.id === tempTransaction.fromAccountId) {
-                                const superTemp = { ...tempTransaction }
-                                superTemp.amount = (superTemp.amount + superTemp.charges) * -1
-                                client.transactions.unshift(superTemp)
-                            }
-                        })
-
-                        setMessageText('Transaction was successful')
-                        setMessageBarType(MessageBarType.success)
-                        openMessage()
-                        setBankDB(bankDB)
-                    } else {
-                        setMessageText('No such account exists or the account is closed')
-                        setMessageBarType(MessageBarType.severeWarning)
-                        openMessage()
-                    }
-                } else {
-                    let res = otherBankTransfer(tempTransaction)
-                    if (res) {
-                        setMessageText('Transaction was successful')
-                        setMessageBarType(MessageBarType.success)
-                        openMessage()
-                    } else {
-                        setMessageText('No such account exists or the account is closed')
-                        setMessageBarType(MessageBarType.severeWarning)
-                        openMessage()
-                    }
-                }
-            }
-        } catch (e) {
-            setMessageText('Something went wrong while processing the transaction')
-            setMessageBarType(MessageBarType.severeWarning)
-            openMessage()
-        }
-
-    }
-
-
-
-    //Columns for DetailsList
-    const columns: IColumn[] = [
-        {
-            key: "dateTime",
-            minWidth: 50,
-            maxWidth: 100,
-            name: "Date & Time",
-            onRender: (item: ITransaction) => {
-                const date = new Date(item.datetime)
-                return (
-                    <TooltipHost
-                        content={date.toLocaleTimeString()}
-                    >
-                        {date.toDateString()}
-                    </TooltipHost>)
-            },
-            isResizable: true
-        },
-        {
-            key: "transactionId",
-            minWidth: 50,
-            maxWidth: 250,
-            name: "Transaction ID",
-            onRender: (item: ITransaction) => {
-                return (
-                    <TooltipHost
-                        content={item.id}
-                    >
-                        {item.id}
-                    </TooltipHost>)
-            },
-            isResizable: true
-        },
-        {
-            key: "sender",
-            minWidth: 80,
-            maxWidth: 250,
-            name: "From",
-            onRender: (item: ITransaction) => {
-                let senderText = "unknown"
-
-                if (item.toAccountId === item.fromAccountId || item.fromAccountId === loginSession.currentId) {
-                    senderText = "Self"
-                } else {
-                    if (item.fromBankName === bankDB.enum) {
-                        senderText = `${item.fromAccountId} - ${(bankDB.enum === BankNameEnum.Technovert) ? 'Technovert Bank' : (bankDB.enum === BankNameEnum.Keka) ? 'Keka Bank' : 'Saketa Bank'}`
-                    } else {
-                        senderText = `${item.fromAccountId} - ${(item.fromBankName === BankNameEnum.Technovert) ? 'Technovert Bank' : (item.fromBankName === BankNameEnum.Keka) ? 'Keka Bank' : 'Saketa Bank'}`
-
-                    }
-                }
-                return <TooltipHost content={senderText}>{senderText}</TooltipHost>
-            },
-            isResizable: true
-        },
-
-        {
-            key: "receiver",
-            minWidth: 80,
-            maxWidth: 250,
-            name: "To",
-            onRender: (item: ITransaction) => {
-                let receiverText = "unknown"
-
-                if (item.toAccountId === item.fromAccountId || item.toAccountId === loginSession.currentId) {
-                    receiverText = "Self"
-                } else {
-                    if (item.toBankName === bankDB.enum) {
-                        receiverText = `${item.toAccountId} - ${(bankDB.enum === BankNameEnum.Technovert) ? 'Technovert Bank' : (bankDB.enum === BankNameEnum.Keka) ? 'Keka Bank' : 'Saketa Bank'}`
-                    } else {
-                        receiverText = `${item.toAccountId} - ${(item.toBankName === BankNameEnum.Technovert) ? 'Technovert Bank' : (item.toBankName === BankNameEnum.Keka) ? 'Keka Bank' : 'Saketa Bank'}`
-
-                    }
-                }
-                return <TooltipHost content={receiverText}>{receiverText}</TooltipHost>
-            },
-            isResizable: true
-        },
-        {
-            key: "type",
-            minWidth: 50,
-            maxWidth: 150,
-            isResizable: true,
-            name: "Type",
-            onRender: (item: ITransaction) => {
-                let type = "unknown"
-
-                if (item.toAccountId === item.fromAccountId) {
-                    if (item.amount < 0) {
-                        type = "Withdraw"
-                    } else {
-                        type = "Deposit"
-                    }
-                } else {
-                    if (item.amount < 0) {
-                        type = "Transact - Sent"
-                    } else {
-                        type = "Transact - Received"
-                    }
-                }
-                return <span>{type}</span>
-            },
-        },
-        {
-            key: "status",
-            minWidth: 50,
-            maxWidth: 50,
-            name: "Status",
-            onRender: (item: ITransaction) => {
-                if (item.status === TransactionStatus.Success)
-                    return <span style={{ color: "green" }}>Success</span>
-                else if (item.status === TransactionStatus.Revoked) return <span style={{ color: "red" }}>Revoked</span>
-                else return <span style={{ color: "yellow" }}>Failed</span>
-            },
-            isResizable: true
-        },
-        {
-            key: "charges",
-            minWidth: 50,
-            maxWidth: 80,
-            name: "Charges",
-            isResizable: true,
-            onRender: (item: ITransaction) => {
-                let charge = item.charges.toFixed(2)
-                return <span style={{ color: `${(item.status !== TransactionStatusEnum.Success) ? '#c8c6c4' : '#252423'}` }}><b>&#8377; {charge}</b></span>
-            }
-        },
-        {
-            key: "debit",
-            minWidth: 50,
-            maxWidth: 80,
-            name: "Debit",
-            isResizable: true,
-            onRender: (item: ITransaction) => {
-                let debit = '-'
-                if (item.amount < 0) {
-                    debit = Math.abs(item.amount).toFixed(2)
-                }
-                return <span style={{ color: `${(item.status !== TransactionStatusEnum.Success) ? '#c8c6c4' : '#252423'}` }}><b>&#8377; {debit}</b></span>
-            }
-        },
-        {
-            key: "credit",
-            minWidth: 50,
-            maxWidth: 80,
-            name: "Credit",
-            isResizable: true,
-            onRender: (item: ITransaction) => {
-                let credit = '-'
-                if (item.amount > 0) {
-                    credit = item.amount.toFixed(2)
-                }
-                return <span style={{ color: `${(item.status !== TransactionStatusEnum.Success) ? '#c8c6c4' : '#252423'}` }}><b>&#8377; {credit}</b></span>
-            }
-        }
-    ]
-
-
-    const currencyOptions: IDropdownOption[] = []
-    bankDB.currency.forEach((currency) => {
-        currencyOptions.push({
-            key: currency.currency,
-            text: currency.currency,
-        })
-    })
-
-    const transferMode: IDropdownOption[] = [{
-        key: 'rtgs',
-        text: 'RTGS'
-    }, {
-        key: 'imps',
-        text: 'IMPS'
-    }
-    ]
-
-    const bankNameOptions: IDropdownOption[] = [
-        {
-            key: BankNameEnum.Technovert,
-            text: 'Technovert Bank',
-            data: BankNameEnum.Technovert
-        },
-        {
-            key: BankNameEnum.Saketa,
-            text: 'Saketa Bank',
-            data: BankNameEnum.Saketa
-        },
-        {
-            key: BankNameEnum.Keka,
-            text: 'Keka Bank',
-            data: BankNameEnum.Keka
-        },
-    ]
-
 
 
     return (
@@ -494,7 +80,7 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
             <div className="ms-Grid-row">
                 <h1 className="client-dashboard--client-name">Welcome, {clientAccount.name}</h1>
             </div>
-            {
+            {   //Message Bar
                 isMessage && <MessageBar
                     onDismiss={closeMessage}
                     messageBarType={messageBarType}
@@ -519,106 +105,51 @@ function ClientDashboard({ bankDB, loginSession, setBankDB, setLoginSession, oth
 
             <div className="ms-Grid-row">
 
-                {(transactions.length === 0) ? <p>No Transactions to Show</p> : <></>}
-                <DetailsList
-
-                    items={transactions}
-                    constrainMode={ConstrainMode.unconstrained}
-                    layoutMode={DetailsListLayoutMode.justified}
-                    columns={columns}
-                    checkboxVisibility={CheckboxVisibility.hidden}
-                />
+                {(transactions.length === 0) ? <p>No Transactions to Show</p> : <ClientTransactionDetails bankDB={bankDB} loginSession={loginSession} items={transactions} />}
 
             </div>
 
 
-            {/*Deposit Modal */}
-            <Modal className="client-dashboard--modal" isOpen={isDepositModal}>
-                <Dropdown
-                    key={uuidV4()}
-                    options={currencyOptions}
-                    label="Currency"
-                    defaultSelectedKey={exchangeCurrency}
-                    required
-                    className="client-dashboard--modal-dropdown"
-                    onChange={(e, option) => setExchangeCurrency(option?.text ?? 'INR')}
-                />
-                <TextField required className="client-dashboard--modal-input" label="Deposit Amount" type="number" placeholder="Enter valid amount" onChange={(e, value) => {
-                    if (value?.length === 0) {
-                        amountInvalid()
-                    } else {
-                        amountValid()
-                        setDepositAmount(value!)
-                    }
-                }} />
-                <PrimaryButton className="client-dashboard--modal-btn" text="Deposit" onClick={depositAmountProcess} disabled={isAmountValid} />
-                <DefaultButton className="client-dashboard--modal-cancel" text="Cancel" onClick={() => {
-                    amountInvalid()
-                    dismissDepositModal()
-                }} />
-            </Modal>
-
-
+            {/*Deposit Modal*/}
+            <ClientDepositModal
+                isDepositModal={isDepositModal}
+                dismissDepositModal={dismissDepositModal}
+                bankDB={bankDB}
+                loginSession={loginSession}
+                setMessageText={setMessageText}
+                setMessageBarType={setMessageBarType}
+                openMessage={openMessage}
+                transactions={transactions}
+                setBankDB={setBankDB}
+            />
 
             {/*Withdraw Modal */}
-            <Modal className="client-dashboard--modal" isOpen={isWithdrawModal}>
-                <TextField className="client-dashboard--modal-input" type="number" prefix="&#8377;" label="Withdraw Amount" placeholder="Enter valid amount" onChange={(e, value) => {
-                    if (value?.length === 0) {
-                        amountInvalid()
-                    } else {
-                        amountValid()
-                        setWithdrawAmount(value!)
-                    }
-                }} />
-                <PrimaryButton className="client-dashboard--modal-btn" text="Withdraw" onClick={withdrawAmountProcess} disabled={isAmountValid} />
-                <DefaultButton className="client-dashboard--modal-cancel" text="Cancel" onClick={() => {
-                    amountInvalid()
-                    dismissWithdrawModal()
-                }} />
-            </Modal>
+            <ClientWithdrawModal
+                balance={balance}
+                bankDB={bankDB}
+                dismissWithdrawModal={dismissWithdrawModal}
+                isWithdrawModal={isWithdrawModal}
+                loginSession={loginSession}
+                openMessage={openMessage}
+                setBankDB={setBankDB}
+                setMessageBarType={setMessageBarType}
+                setMessageText={setMessageText}
+                transactions={transactions}
+            />
 
-
-
-            {/*Transaction Modal */}
-            <Modal isOpen={isTransactModal} className="client-dashboard__transact-modal">
-                <Dropdown
-                    key={uuidV4()}
-                    defaultSelectedKey={transferToBank}
-                    options={bankNameOptions}
-                    label="Select Bank"
-                    required
-                    onChange={(e, option) => {
-                        setTransferToBank(option?.data)
-                    }}
-                    className="client-dashboard__transact-modal--bank"
-                />
-                <TextField label="Payee Account Number" required onChange={(e, value) => transactPayeeIdSet(value!)} className="client-dashboard__transact-modal--account" />
-                <Dropdown
-                    key={uuidV4()}
-                    options={transferMode}
-                    label="Transfer Mode"
-                    required
-                    defaultSelectedKey={transferType}
-                    onChange={(e, option) => {
-                        setTransferType(option?.key.toString()!)
-                    }}
-                    className="client-dashboard__transact-modal--transfer"
-                />
-                <TextField label="Transaction Amount" required prefix="&#8377;" type="number" className="client-dashboard__transact-modal--amount" onChange={(e, value) => {
-                    if (value?.length! > 0) {
-                        amountValid()
-                        transactAmountSet(value!)
-                    } else {
-                        amountInvalid()
-                    }
-                }} minLength={1} />
-                <PrimaryButton text="Transact" className="client-dashboard__transact-modal--submit" onClick={transactAmountProcess} disabled={isAmountValid} />
-                <DefaultButton text="Cancel" className="client-dashboard__transact-modal--cancel" onClick={() => {
-                    amountInvalid()
-                    dismissTransactModal()
-                }} />
-            </Modal>
-
+            {/*Transfer Amount Modal */}
+            <ClientTransferModal
+                balance={balance}
+                bankDB={bankDB}
+                dismissTransactModal={dismissTransactModal}
+                isTransactModal={isTransactModal}
+                loginSession={loginSession}
+                openMessage={openMessage}
+                otherBankTransfer={otherBankTransfer}
+                setBankDB={setBankDB}
+                setMessageBarType={setMessageBarType}
+                setMessageText={setMessageText}
+            />
 
         </div>
     )

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import { useState } from 'react'
 import IDashboard from '../../common/interfaces/bank.dashboard.interface'
 import {
-    PrimaryButton, Panel, TextField, DefaultButton, Pivot, PivotItem,
+    PrimaryButton, Pivot, PivotItem,
     IStyleFunctionOrObject, IPivotStyleProps, IPivotStyles, PivotLinkSize,
     Separator, MessageBar, MessageBarType
 } from '@fluentui/react'
@@ -10,12 +10,11 @@ import { useHistory } from 'react-router-dom'
 import ClientAccount from './staff.client.account'
 import IAccountHolder from '../../common/interfaces/client.account.interface'
 import AccountStatusEnum from '../../common/interfaces/acount.status.enum'
-import { createAccountId } from '../../common/services/bank.id.creation'
 import ITransaction from '../../common/interfaces/client.transaction.interface'
 import TransactionStatus from '../../common/interfaces/transaction.status.enum'
 import BankSettings from './staff.bank.settings'
 import BankNameEnum from '../../common/interfaces/bank.name.enum'
-import { nameRegex, passwordRegex, usernameRegex } from '../../common/services/client.validation.regex'
+import AddClient from './staff.addClient'
 
 interface IStaffDashboard extends IDashboard {
     chooseBank: Function,
@@ -61,56 +60,6 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
     }
 
     const [isAddClient, { setTrue: openAddClient, setFalse: dismissAddClient }] = useBoolean(false)
-
-    const [name, setName] = useState('')
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-
-
-    //Add a new Account Holder(client)
-    function addClient(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault()
-        dismissAddClient()
-        let tempClient: IAccountHolder = {
-            id: createAccountId(name),
-            name: name,
-            password: password,
-            status: AccountStatusEnum.Open,
-            transactions: [],
-            username: username
-        }
-
-        let allowedAddClientFlag = true
-        let ifDuplicateThenType = ''
-
-        bankDB.client.forEach((client) => {
-            if (client.id === tempClient.id) {
-                ifDuplicateThenType = ifDuplicateThenType + 'ID'
-                allowedAddClientFlag = false
-            }
-            if (client.username === tempClient.username) {
-                allowedAddClientFlag = false
-                if (ifDuplicateThenType.length > 0) {
-                    ifDuplicateThenType = ifDuplicateThenType + ' & Username'
-                } else {
-                    ifDuplicateThenType = ifDuplicateThenType + 'Username'
-                }
-            }
-        })
-
-        if (allowedAddClientFlag) {
-            let newBankDB = { ...bankDB }
-            newBankDB.client.unshift(tempClient)
-            setBankDB(newBankDB)
-            setMessageText('Client wass successfully added')
-            setMessageBarType(MessageBarType.success)
-            openMessage()
-        } else {
-            setMessageText(`${ifDuplicateThenType} already exists`)
-            setMessageBarType(MessageBarType.blocked)
-            openMessage()
-        }
-    }
 
     //Update a account holder(Client)
     function updateClient(client: IAccountHolder) {
@@ -175,18 +124,6 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
     const activeAccounts = bankDB.client.filter((client) => (client.status === AccountStatusEnum.Open))
     const closedAccounts = bankDB.client.filter((client) => (client.status === AccountStatusEnum.Close))
 
-    const [isAddValidBtn, { setTrue: disableAddBtn, setFalse: enableAddBtn }] = useBoolean(true)
-
-    useEffect(() => {
-
-        if (nameRegex.test(name) && usernameRegex.test(username) && passwordRegex.test(password)) {
-            enableAddBtn()
-        } else {
-            disableAddBtn()
-        }
-
-    }, [name, username, password])
-
     return (
         <div className="ms-Grid" dir="ltr">
             <div className="ms-Grid-row staff-dashboard__title-row">
@@ -239,42 +176,15 @@ function StaffDashboard({ setLoginSession, setBankDB, loginSession, bankDB, choo
                     <BankSettings bankDB={bankDB} setBankDB={setBankDB} />
                 </PivotItem>
             </Pivot>
-
-            <Panel isOpen={isAddClient} hasCloseButton={false} headerText="Add Client" >
-                <form onSubmit={addClient}>
-                    <TextField required
-                        onGetErrorMessage={(value) => {
-                            if (!nameRegex.test(value) && value.length !== 0) {
-                                return 'Name can only contain Alphabets'
-                            } else {
-                                return ''
-                            }
-                        }}
-                        name="name" className="staff-dashboard--add-client__name" label="Name" onChange={(e, value) => setName(value!)} />
-                    <TextField required
-                        onGetErrorMessage={(value) => {
-                            //username Regex
-                            if (!usernameRegex.test(value) && value.length !== 0) {
-                                return 'No Special characters or uppercase allowed, minimum 6 characters'
-                            } else {
-                                return ''
-                            }
-                        }}
-                        name="username" className="staff-dashboard--add-client__username" label="Username" onChange={(e, value) => setUsername(value!)} />
-                    <TextField
-                        onGetErrorMessage={(value) => {
-                            //password Regex
-                            if (!passwordRegex.test(value) && value.length !== 0) {
-                                return 'Password must be alphanumeric, contain atleast one @ # $ % ^ & * ( ) ! and one lower and uppercase letters, minimum 8 characters'
-                            } else {
-                                return ''
-                            }
-                        }}
-                        required name="password" className="staff-dashboard--add-client__password" label="Password" onChange={(e, value) => setPassword(value!)} />
-                    <PrimaryButton text="Add" type="submit" className="staff-dashboard--add-client__add" disabled={isAddValidBtn} />
-                    <DefaultButton text="Cancel" onClick={dismissAddClient} className="staff-dashboard--add-client__cancel" />
-                </form>
-            </Panel>
+            <AddClient
+                bankDB={bankDB}
+                dismissAddClient={dismissAddClient}
+                isAddClient={isAddClient}
+                openMessage={openMessage}
+                setBankDB={setBankDB}
+                setMessageBarType={setMessageBarType}
+                setMessageText={setMessageText}
+            />
         </div>
     )
 }
