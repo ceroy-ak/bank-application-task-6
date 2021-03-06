@@ -1,20 +1,20 @@
-import IStaff from './staff.interface'
-import IAccount from './client.account.interface'
 import BankNameEnum from './bank.name.enum'
-import IRtgs from './bank.rtgs.interface'
-import IImps from './bank.imps.interface'
-import ICurrency from './bank.currency'
+import Account from '../models/client.account.model'
+import Staff from '../models/staff.model'
+import Rtgs from '../models/bank.rtgs.model'
+import Imps from '../models/bank.imps.model'
+import Currency from '../models/bank.currency.model'
 
 interface IBank {
     name: string,
     id: string,
-    client: IAccount[],
-    staff: IStaff[]
+    client: Account[],
+    staff: Staff[]
     enum: BankNameEnum,
     img: string,
-    rtgs: IRtgs,
-    imps: IImps,
-    currency: ICurrency[]
+    rtgs: Rtgs,
+    imps: Imps,
+    currency: Currency[]
 }
 
 export default IBank

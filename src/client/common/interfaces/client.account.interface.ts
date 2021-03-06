@@ -1,4 +1,4 @@
-import ITransaction from './client.transaction.interface'
+import Transaction from '../models/client.transaction.model'
 import AccountStatusEnum from './acount.status.enum'
 
 interface IAccountHolder {
@@ -6,7 +6,7 @@ interface IAccountHolder {
     username: string
     password: string
     name: string
-    transactions: ITransaction[]
+    transactions: Transaction[]
     status: AccountStatusEnum
 }
 
